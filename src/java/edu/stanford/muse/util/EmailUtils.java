@@ -382,17 +382,28 @@ public class EmailUtils {
 		}
 	}
 
+	public static void printToMbox(Archive archive, EmailDocument ed, PrintWriter mbox, BlobStore blobStore, boolean stripQuoted)
+	{
+		printToMbox(archive, ed, mbox, blobStore, stripQuoted, false);
+	}
+
 	/*
 	 * header is printed in mbox format, then each of the given contents sequentially
 	 * if blobStore is null, attachments are not printed. could make this better by allowing text/html attachments.
 	 */
-	public static void printToMbox(Archive archive, EmailDocument ed, PrintWriter mbox, BlobStore blobStore, boolean stripQuoted)
+	public static void printToMbox(Archive archive, EmailDocument ed, PrintWriter mbox, BlobStore blobStore, boolean stripQuoted, boolean onlyHeaders)
 	{
 		String contents;
 		try {
 			printHeaderToMbox(ed, mbox, archive.getLabelManager(),archive.getAnnotationManager());
-			contents = archive.getContents(ed, stripQuoted);
-			printBodyAndAttachmentsToMbox(contents, ed, mbox, blobStore);
+			if (!onlyHeaders) {
+				contents = archive.getContents(ed, stripQuoted);
+				printBodyAndAttachmentsToMbox(contents, ed, mbox, blobStore);
+			}
+			else
+			{
+				mbox.println("\n-------------------------------\n");
+			}
 		} catch (Exception e) {
 			Util.print_exception(e, log);
 		}

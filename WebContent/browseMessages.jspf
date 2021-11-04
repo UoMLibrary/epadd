@@ -1,8 +1,13 @@
+<%@page import="com.fasterxml.jackson.core.JsonParser"%>
 <%@ page import="edu.stanford.muse.index.Document" %>
 <%@ page import="java.util.Collection" %>
 <%@ page import="edu.stanford.muse.index.SearchResult" %>
+<%@ page import="edu.stanford.muse.index.DataSet" %>
+
 <%@ page import="edu.stanford.muse.webapp.JSPHelper" %>
 <%@ page import="edu.stanford.muse.util.Pair" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="java.util.*" %>
 
 <script src="js/browseMessages.js" type="text/javascript"></script>
 
@@ -13,8 +18,51 @@
 
 </script> <!-- make the dataset name available to browseMessages.js -->
 
+<% 
+String originalContent = "";
+Map<String, String> emailBodyMap = new HashMap<>();
+for(Document d: docs)
+{
+	org.apache.lucene.document.Document ldoc = archive.getLuceneDoc(d.getUniqueId());
+	originalContent = archive.getContents(ldoc, false);
+	originalContent = originalContent.replace("\n", "\\n");
+	originalContent = originalContent.replace("&", "\\&");
+	originalContent = originalContent.replace("\"", "\\\"");
 
-<div class="nav-toggle1 sidebar-icon">
+	emailBodyMap.put(d.getUniqueId(), originalContent);
+}
+
+String emailBodiesJson = new Gson().toJson(emailBodyMap);
+
+
+try
+{
+	emailBodiesJson = emailBodiesJson.substring(0,10000);
+	emailBodiesJson+="\"}";
+}
+catch(Exception e){}
+
+
+%>
+<script>
+try
+{
+	var emailBodies = JSON.parse('<%=emailBodiesJson%>');
+}
+catch(e)
+{
+	console.log('<%=emailBodiesJson%>' + " Error " + e);
+	alert(e);
+}
+</script>
+
+<%-- <script>var emailBody = '<%=originalContent%>';</script>
+
+ <%String s1 = originalContent.replace('\n', ' '); %>
+ <script>var emailBody = "<%=s1%>";</script>
+
+ --%>
+ <div class="nav-toggle1 sidebar-icon">
 <img src="images/sidebar.png" alt="sidebar">
 </div>
 <nav class="menu1" role="navigation">
@@ -283,6 +331,9 @@ a jquery ($) object that is overwritten when header.jsp is included! -->
                 <div class="message-menu">
                     <%if(!ModeConfig.isDiscoveryMode()){%>
                     <a href="#" class="annotation-link" title="Message annotation"><img style="padding: 0px 27px; border-right: solid 1px #ccc;" src="images/add_annotation.svg"/></a>
+                    
+                    <a href="#" class="email-content-link" title="Modify email content"><img style="padding: 0px 27px; border-right: solid 1px #ccc;" src="images/edit_email.jpg"/></a>
+                    
                     <%}%>
                     <a href="#" class="id-link" title="Get message ID"><img style="padding: 0px 27px; border-right: solid 1px #ccc;" src="images/message_id.svg"/></a>
                     <a href="#" class="thread-link" target="_blank" title="Open thread"><span class="thread-count" style="padding-left:17px"></span><img style="padding: 0px 7px; border-right: solid 1px #ccc;" src="images/thread_view.svg"/></a>
@@ -324,6 +375,17 @@ a jquery ($) object that is overwritten when header.jsp is included! -->
                     </div>
                 </div>
 
+<!-- 				<div class="email-modification" title="Click to edit email"> -->
+<!--                     <div class="email-modification-header"> -->
+<!--                         <span>Email Modification</span> -->
+<!--                         <img title="Edit email" id="email-modification-icon" style="margin-left: 78px; cursor:pointer" src="images/edit_annotation.svg"/> -->
+<!--                         <img title="Close" id="close-email-modification-icon" style="margin-left: 25px; cursor: pointer" src="images/close.svg"/></div> -->
+<!--                     <div class="email-modification-area"> -->
+                    
+<!--                         will be filled in by JS -->
+<!--                     </div> -->
+                </div>
+
                 <script>
                     $("#edit-annotation-icon").click(function() {
                             $('#annotation-modal').modal();
@@ -333,6 +395,13 @@ a jquery ($) object that is overwritten when header.jsp is included! -->
                             $('.annotation').hide();
                         });
 
+                        $("#email-modification-icon").click(function() {
+                            $('#email-modification-modal').modal();
+                            //$('.email-modification-area').css('filter','blur(2px)')
+                        });
+                        $("#close-email-modification-icon").click(function() {
+                            $('.email-modification').hide();
+                        });
                 </script>
 
 
@@ -445,6 +514,27 @@ a jquery ($) object that is overwritten when header.jsp is included! -->
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
+
+<div>
+    <div id="email-modification-modal" class="info-modal modal fade" style="z-index:99999">
+        <div class="modal-dialog">
+            <div class="modal-content" style="height: 900px">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">Edit Email</h4>
+                </div>
+                <textarea title="Mod" name="emailModificationField" style="margin: 3%; width: 90%; height: 75%; border: solid 1px gray;" class="modal-body">
+
+            </textarea>
+                <div class="modal-footer">
+                    <button id='ok-button-email-modification' type="button" class="btn btn-default" data-dismiss="modal">APPLY</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+
+
 
     <%--Modal for showing more information about an attachment (in case it was normalized/cleanedup during preservation support)--%>
     <div>

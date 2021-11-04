@@ -333,6 +333,100 @@ var Annotations = function() {
     };
 }();
 
+
+
+
+var emailModifications = function() {
+
+    modifiedEmail = '';
+    // set up event handlers for annotations, should be called only once
+    function setup() {
+
+        // things to do when modification modal is shown
+        function email_modification_modal_shown() {
+                
+            emailBody = emailBodies[docIDs[PAGE_ON_SCREEN]];
+            
+            $('#email-modification-modal .modal-body').val(emailBody).focus();
+            Navigation.disableCursorKeys();
+        }
+
+        // things to do when user clicks on 'apply to this message'
+        function email_modification_modal_dismissed_apply_to_this_message() {
+            
+            Navigation.enableCursorKeys();
+            modifiedEmail = $('#email-modification-modal .modal-body').val().trim(); // .val() gets the value of a text area. assume: no html in annotations
+
+            // post to the backend, and when successful, refresh the labels on screen
+            $.ajax({
+                        url : 'ajax/applyEmailModification.jsp',
+                        type : 'POST',
+                        data : {
+                            archiveID : archiveID,
+                            docId : docIDs[PAGE_ON_SCREEN],
+                            modifiedEmail : modifiedEmail,
+                        }, 
+                        dataType : 'json',
+                        success : function(response) {
+                            emailModifications.refreshEmail();
+
+                                //$('.email-modification-area').text(modifiedEmail); // we can't set the annotation area to a completely empty string because it messes up rendering if the span is empty!
+                        },
+                        error : function() {
+                            epadd
+                                    .error('There was an error saving the modified email. Please try again, and if the error persists, report it to epadd_project@stanford.edu.');
+                        }
+                    });
+        }
+
+        $('#email-modification-modal').on('shown.bs.modal', email_modification_modal_shown);
+        $('#email-modification-modal').on('hidden.bs.modal', function() {
+            Navigation.enableCursorKeys();
+            //$('.email-modification-area').css('filter', ''); /* clear the blur effect */
+        });
+
+        $('#email-modification-modal').find('#ok-button-email-modification').click(
+                email_modification_modal_dismissed_apply_to_this_message);
+            // when annotation is clicked, invoke modal
+        $('a.email-content-link').click(function() {
+            // show the modal
+            $('div.email-modification').show();
+            $('#email-modification-modal').modal();
+            return false;
+        });
+    }
+
+    // copies annotation from .annotation-area on screen to the current page's
+    function refreshEmail() {
+        window.location.reload();
+//        var $annotation = $('div.annotation');
+//        var $annotationarea = $('.annotation-area', $annotation);
+//        $('.annotation-area').css('filter', '');
+//
+//        if (annotations[PAGE_ON_SCREEN]
+//                && annotations[PAGE_ON_SCREEN].length > 0) {
+//            $annotationarea.text(annotations[PAGE_ON_SCREEN]);
+//            $annotation.show();
+//            //change the UI
+//            $('.message-menu a.annotation-link img').attr('src',
+//                    'images/add_annotation_dot.svg');
+//        } else {
+//            $annotationarea.text('No annotation');
+//            $annotation.hide();
+//            //chage the UI
+//            $('.message-menu a.annotation-link img').attr('src',
+//                    'images/add_annotation.svg');
+//        }
+    }
+
+    return {
+        setup : setup,
+        refreshEmail : refreshEmail,
+        modifiedEmail : modifiedEmail
+    // debug only
+    };
+}();
+
 $(document).ready(function() {
 
     // allow facets panel to run the full height of the screen on the left
@@ -341,6 +435,7 @@ $(document).ready(function() {
     PAGE_ON_SCREEN = 0;
     Labels.setup();
     Annotations.setup();
+    emailModifications.setup();
     Navigation.setupEvents(); // important -- this has to be after labels and annotations setup to render the first page correctly
 
     // on page unload, release dataset to free memory

@@ -221,7 +221,8 @@ try{
             fnameprefix="restricted-messages";
         }
 
-
+    String onlyHeadersString=JSPHelper.getParam(params,"onlyHeaders");
+    boolean onlyHeaders = onlyHeadersString.equals("on");
     String pathToFile = Archive.TEMP_SUBDIR + File.separator + fnameprefix+".mbox";
         Util.deleteAllFilesWithSuffix(Archive.TEMP_SUBDIR,"mbox",JSPHelper.log);
     PrintWriter pw = null;
@@ -229,7 +230,7 @@ try{
         pw = new PrintWriter(pathToFile, "UTF-8");
         boolean stripQuoted = true;
         for (Document ed: docset)
-            EmailUtils.printToMbox(archive, (EmailDocument) ed, pw,archive.getBlobStore(), stripQuoted);
+            EmailUtils.printToMbox(archive, (EmailDocument) ed, pw,archive.getBlobStore(), stripQuoted, onlyHeaders);
 
         pw.close();
 

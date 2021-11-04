@@ -120,7 +120,7 @@ public class Indexer implements StatusProvider, java.io.Serializable {
 	// some fields like name_offsets absolutely don't need to be indexed and can be kept as storeOnly_ft
 	final transient private static FieldType storeOnly_ft;
 	private static final transient FieldType ft;
-	static final transient FieldType full_ft;
+	public static final transient FieldType full_ft;
 	static transient FieldType unanalyzed_full_ft;													// unanalyzed_full_ft for regex search
 	static {
 		storeOnly_ft = new FieldType();

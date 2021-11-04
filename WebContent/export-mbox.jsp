@@ -43,10 +43,14 @@
 
     String docsetID=request.getParameter("docsetID");
     String fname = Util.nullOrEmpty(docsetID) ? "epadd-export-all.mbox" : "epadd-export-" + docsetID + ".mbox";
+    String fnameOnlyHeaders = Util.nullOrEmpty(docsetID) ? "epadd-export-all-only-headers.mbox" : "epadd-export-" + docsetID + "-only-headers.mbox";
+
     String attachmentdirname = f.getAbsolutePath() + File.separator + (Util.nullOrEmpty(docsetID)? "epadd-all-attachments" : "epadd-all-attachments-"+docsetID);
     new File(attachmentdirname).mkdir();
 
     String pathToFile = f.getAbsolutePath() + File.separator + fname;
+    String pathToFileOnlyHeaders = f.getAbsolutePath() + File.separator + fnameOnlyHeaders;
+
     PrintWriter pw = null;
     try {
         pw = new PrintWriter(pathToFile, "UTF-8");
@@ -55,7 +59,14 @@
         Util.print_exception("Error opening mbox file: ", e, JSPHelper.log);
         return;
     }
-
+    PrintWriter pwOnlyHeaders = null;
+    try {
+        pwOnlyHeaders = new PrintWriter(pathToFileOnlyHeaders, "UTF-8");
+    } catch (Exception e) {
+        out.println ("Sorry, error opening mbox file: " + e + ". Please see the log file for more details.");
+        Util.print_exception("Error opening mbox file: ", e, JSPHelper.log);
+        return;
+    }
     //check if request contains docsetID then work only on those messages which are in docset
     //else export all messages of mbox.
     Collection<Document> selectedDocs;
@@ -84,6 +95,18 @@
     String contentURL = "serveTemp.jsp?archiveID="+archiveID+"&file=" + fname ;
     String linkURL = appURL + "/" +  contentURL;
 
+    //Only headers
+    for (Document ed: selectedDocs)
+        EmailUtils.printToMbox(archive, (EmailDocument) ed, pwOnlyHeaders, null, stripQuoted, true);
+    pwOnlyHeaders.close();
+    String appURLOnlyHeaders = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
+    String contentURLOnlyHeaders = "serveTemp.jsp?archiveID="+archiveID+"&file=" + fnameOnlyHeaders ;
+    String linkURLOnlyHeaders = appURLOnlyHeaders + "/" + contentURLOnlyHeaders;
+
+
+
+
+
     /* Code to export attachments for the given set of documents as zip file*/
     Map<Blob, String> blobToErrorMessage = new LinkedHashMap<>();
     //Copy all attachment to a temporary directory and then zip it and allow transfer to the client
@@ -109,6 +132,17 @@
     <p>
         This mbox file may also have extra headers like X-ePADD-Folder, X-ePADD-Labels and X-ePADD-Annotation.
     </p>
+
+
+    <a href =<%=linkURLOnlyHeaders%>>Download mbox file headers only</a>
+    <p></p>
+    Download Mbox file with only the headers
+    </p>
+
+
+
+
+
     <br/>
     <a href =<%=attachmentDownloadURL%>>Download attachments in a zip file</a>
     <p></p>

@@ -770,6 +770,12 @@ public class IndexUtils {
 				continue;
 			EmailDocument ed = (EmailDocument) d;
 			String s = ed.folderName;
+			// Remove the leading bit of the path. We are only
+			// interested in the folder within the email account.
+			// E.g. C:/users/john/epaddxxx/carcanet/smith/inbox
+			int index = s.indexOf("xxx");
+			s = s.substring(index + 4);
+						
 			if (s == null)
 				continue;
 			DetailedFacetItem f = folderNameMap.computeIfAbsent(s, s1 -> new DetailedFacetItem(Util.filePathTail(s1), s1, "folder", s1));

@@ -329,6 +329,14 @@ Error: Export is only available in processing or appraisal modes!
                         <option value = "restricted"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.mess-restricted")%></option>
                     </select>
                 </div>
+                <div class="one-line">
+                    <div class="checkbox-inline" style="padding:0px 0px 0px 15px">
+                        <label>
+                            <input type="checkbox" id="only-headers-option" name="only-headers-option" checked>
+                            <span class="label-text">Headers Only</span>
+                        </label>
+                    </div>
+                </div>
                 <div class="form-group col-sm-4">
                     <button id="export-mbox-do" class="go-button  btn-default"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.export-button")%></button>
                 </div>
@@ -347,7 +355,8 @@ Error: Export is only available in processing or appraisal modes!
                 alert("Please select at least one option!");
                 return false;
             }
-            var post_params={archiveID:archiveID, data:"to-mbox", type:exportoptions};
+            var onlyHeadersOption= $('#only-headers-option').val();
+            var post_params={archiveID:archiveID, data:"to-mbox", type:exportoptions, onlyHeaders:onlyHeadersOption};
             var params = epadd.convertParamsToAmpersandSep(post_params);
             fetch_page_with_progress("ajax/downloadData.jsp", "status", document.getElementById('status'), document.getElementById('status_text'), params);
             /*

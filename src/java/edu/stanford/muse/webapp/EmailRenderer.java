@@ -725,9 +725,25 @@ public class EmailRenderer {
 		// + this.folderName + "</td></tr>\n");
 		if(debug)
 			result.append("<tr><td>docId: </td><td>"+ed.getUniqueId()+"</td></tr>\n");
-		result.append(JSPHelper.getHTMLForDate(archiveID,ed.date));
-
+		
+		
 		final String style = "<tr><td align=\"right\" class=\"muted\" valign=\"top\">";
+
+		result.append(style + "Folder: </td><td align=\"left\"><b>");
+		
+		// Remove everything before xxx and also xxx itself
+		int index = ed.folderName.indexOf("xxx");
+		String displayFolderName = ed.folderName.substring(index + 4);
+		
+		// We can't have '/' in file name, so we have x-x in file name and now replace it by '/'.
+		displayFolderName = displayFolderName.replace("x-x", "/");
+		result.append(displayFolderName);
+		result.append("\n</b></td></tr>\n");
+
+		result.append(JSPHelper.getHTMLForDate(archiveID,ed.date));
+		
+		
+
 
 		// email specific headers
 		result.append(style + "From: </td><td align=\"left\">");
