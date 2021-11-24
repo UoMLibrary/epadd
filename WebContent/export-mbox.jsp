@@ -43,7 +43,7 @@
 
     String docsetID=request.getParameter("docsetID");
     String fname = Util.nullOrEmpty(docsetID) ? "epadd-export-all.mbox" : "epadd-export-" + docsetID + ".mbox";
-    String fnameOnlyHeaders = Util.nullOrEmpty(docsetID) ? "epadd-export-all-only-headers.mbox" : "epadd-export-" + docsetID + "-only-headers.mbox";
+    String fnameOnlyHeaders = Util.nullOrEmpty(docsetID) ? "epadd-export-all-only-headers.mbox" : "epadd-export-" + docsetID + "-only-headers.csv";
 
     String attachmentdirname = f.getAbsolutePath() + File.separator + (Util.nullOrEmpty(docsetID)? "epadd-all-attachments" : "epadd-all-attachments-"+docsetID);
     new File(attachmentdirname).mkdir();
@@ -63,8 +63,8 @@
     try {
         pwOnlyHeaders = new PrintWriter(pathToFileOnlyHeaders, "UTF-8");
     } catch (Exception e) {
-        out.println ("Sorry, error opening mbox file: " + e + ". Please see the log file for more details.");
-        Util.print_exception("Error opening mbox file: ", e, JSPHelper.log);
+        out.println ("Sorry, error opening csv file: " + e + ". Please see the log file for more details.");
+        Util.print_exception("Error opening csv file: ", e, JSPHelper.log);
         return;
     }
     //check if request contains docsetID then work only on those messages which are in docset
@@ -95,9 +95,10 @@
     String contentURL = "serveTemp.jsp?archiveID="+archiveID+"&file=" + fname ;
     String linkURL = appURL + "/" +  contentURL;
 
-    //Only headers
+    //Only headers information for search result csv format
+    EmailUtils.printCsvHeader(pwOnlyHeaders);
     for (Document ed: selectedDocs)
-        EmailUtils.printToMbox(archive, (EmailDocument) ed, pwOnlyHeaders, null, stripQuoted, true);
+        EmailUtils.printToCsv(archive, (EmailDocument) ed, pwOnlyHeaders, null, stripQuoted);
     pwOnlyHeaders.close();
     String appURLOnlyHeaders = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
     String contentURLOnlyHeaders = "serveTemp.jsp?archiveID="+archiveID+"&file=" + fnameOnlyHeaders ;
@@ -134,14 +135,10 @@
     </p>
 
 
-    <a href =<%=linkURLOnlyHeaders%>>Download mbox file headers only</a>
+    <a href =<%=linkURLOnlyHeaders%>>Download search result in csv format</a>
     <p></p>
-    Download Mbox file with only the headers
+    Download search result in csv format
     </p>
-
-
-
-
 
     <br/>
     <a href =<%=attachmentDownloadURL%>>Download attachments in a zip file</a>
