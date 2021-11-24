@@ -306,6 +306,67 @@ public class EmailUtils {
 		Base64 base64encoder = new Base64(76, b);
 	}
 
+	protected static String escapeForCsv(String s) {
+		String escapedString = "";
+
+		if (s != null)
+			escapedString = "\"" + s.replaceAll("\"", "\"\"") + "\"";
+
+		return escapedString;
+	}
+
+	public static void printCsvHeader(PrintWriter csv) {
+		csv.println("From -, Date:, From:, To:, Cc:, Bcc:, Subject:, Message-ID:, X-ePADD-Folder:, X-ePADD-Annotation:, X-ePADD-Labals:");
+	}
+
+	private static void printHeaderToCsv(EmailDocument ed, PrintWriter csv, LabelManager labelManager, AnnotationManager annotationManager) {
+		/* Comma separator is selected as comma (,) */
+		/* By default all fields would be output as csv format */
+		/* refer to printCsvHeader for all output fields */
+		final String csv_separator = ",";
+
+		Date d = ed.date != null ? ed.date : new Date();
+		String s = sdf1.format(d);
+		csv.print(escapeForCsv(s) + csv_separator); // From -
+		csv.print(escapeForCsv(sdf2.format(d) + " +0000 GMT") + csv_separator); // watch out, this might not be the right date format // Date:
+		csv.print(escapeForCsv(ed.getFromString()) + csv_separator); // From:
+		csv.print(escapeForCsv(ed.getToString()) + csv_separator); //To:
+		String cc = ed.getCcString();
+		if (Util.nullOrEmpty(cc))
+			cc = "";
+		csv.print(escapeForCsv(cc) + csv_separator); //Cc:
+
+		String bcc = ed.getBccString();
+		if (Util.nullOrEmpty(bcc))
+			bcc = "";
+		csv.print(escapeForCsv(bcc) + csv_separator); //Bcc:
+
+		csv.print(escapeForCsv(ed.description) + csv_separator); //Subject:
+		csv.print(escapeForCsv(ed.messageID) + csv_separator); //Message-ID:
+		csv.print(escapeForCsv(ed.folderName) + csv_separator); // X-ePADD-Folder:
+
+		String comment = "";
+		if (!Util.nullOrEmpty(annotationManager.getAnnotation(ed.getUniqueId())))
+		{
+			comment = annotationManager.getAnnotation(ed.getUniqueId());
+			comment = comment.replaceAll("\n", " ");
+			comment = comment.replaceAll("\r", " ");
+		}
+		csv.print(escapeForCsv(comment) + csv_separator); // X-ePADD-Annotation:
+
+		// print labels
+		{
+			String labelDescription = ""; // default, if there are no labels, we'll always output it.
+			Set<String> labelsIDsForThisDoc = labelManager.getLabelIDs(ed.getUniqueId());
+
+			if (!Util.nullOrEmpty(labelsIDsForThisDoc)) {
+				Set<String> labelsForThisDoc = labelsIDsForThisDoc.stream().map(id -> labelManager.getLabel(id).getLabelName()).collect(Collectors.toSet());
+				labelDescription = Util.join(labelsForThisDoc, ";");
+			}
+			csv.println(escapeForCsv(labelDescription)); // X-ePADD-Labels:
+		}
+	}
+
 	private static void printHeaderToMbox(EmailDocument ed, PrintWriter mbox, LabelManager labelManager, AnnotationManager annotationManager) {
 		/* http://www.ietf.org/rfc/rfc1521.txt is the official ref. */
 		Date d = ed.date != null ? ed.date : new Date();
@@ -379,6 +440,15 @@ public class EmailUtils {
 				Util.print_exception(e, log);
 			}
 			i++;
+		}
+	}
+
+	public static void printToCsv(Archive archive, EmailDocument ed, PrintWriter mbox, BlobStore blobStore, boolean stripQuoted)
+	{
+		try {
+			printHeaderToCsv(ed, mbox, archive.getLabelManager(),archive.getAnnotationManager());
+		} catch (Exception e) {
+			Util.print_exception(e, log);
 		}
 	}
 
