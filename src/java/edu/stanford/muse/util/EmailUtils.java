@@ -309,8 +309,7 @@ public class EmailUtils {
 	protected static String escapeForCsv(String s) {
 		String escapedString = "";
 
-		if (s != null)
-			escapedString = "\"" + s.replaceAll("\"", "\"\"") + "\"";
+		if (s != null) escapedString = "\"" + s.replaceAll("\"", "\"\"") + "\"";
 
 		return escapedString;
 	}

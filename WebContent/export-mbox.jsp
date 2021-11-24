@@ -140,10 +140,6 @@
     Download search result in csv format
     </p>
 
-
-
-
-
     <br/>
     <a href =<%=attachmentDownloadURL%>>Download attachments in a zip file</a>
     <p></p>
