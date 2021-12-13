@@ -38,6 +38,39 @@ public class EmailRenderer {
 	}
 
 	/**
+	 * returns a textual string for documents - in email modification modal
+	 *
+	 * @param
+	 * @throws Exception
+	 */
+	//TODO: inFull, debug params can be removed
+
+	public static String textForDocument(Document d, SearchResult searchResult) throws Exception {
+		JSPHelper.log.debug("Generating textual string for document: " + d);
+		EmailDocument ed = null;
+		Archive archive = searchResult.getArchive();
+		String contentsText = null;
+
+		if (d instanceof EmailDocument) {
+			// for email docs, 1 doc = 1 page
+			ed = (EmailDocument) d;
+
+			StringBuilder page = new StringBuilder();
+
+			contentsText = archive.getTextForContents(d);
+
+		} else if (d instanceof DatedDocument) {
+			contentsText = "To be implemented";
+
+		} else {
+			JSPHelper.log.warn("Unsupported Document: " + d.getClass().getName());
+			contentsText = "";
+		}
+
+		return contentsText;
+	}
+
+	/**
 	 * returns a string for documents - in message browsing screen.
 	 *
 	 * @param

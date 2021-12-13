@@ -68,6 +68,29 @@ public class DataSet {
         return "Data set with " + size() + " documents";
     }
 
+   /* returns message editing in textarea for doc i.
+    Caches the message editing once computed (Removed during refactoring. It was done in variable called pages).
+     In the front end jog plugin also does caching so removed server sided caching for simplicity*/
+
+    public String getPageForEdit(int i) {
+
+        try {
+            String editContent = "";
+
+            {
+                // we are assuming one page per doc for now. (true for
+                // emails)
+                editContent = EmailRenderer.textForDocument(docs.get(i), searchResult);
+
+            }
+
+            return editContent;
+
+        } catch (Exception e) {
+            return "Message unavailable, please try to reload this page.<br/>" + e.toString(); // also reflect this back to the user
+        }
+    }
+
     /* returns message browsing html for doc i.
     Caches the html once computed (Removed during refactoring. It was done in variable called pages).
      In the front end jog plugin also does caching so removed server sided caching for simplicity*/
