@@ -1435,6 +1435,24 @@ after maskEmailDomain.
                 entitiesWithId, IA_links, showDebugInfo);
     }
 
+    public String getTextForContents(Document d) throws Exception {
+        org.apache.lucene.document.Document ldoc = indexer.getDoc(d);
+
+        String contents = indexer.getContents(d, false);
+
+        contents = Util.removeMetaTag(contents);
+
+        if (ldoc == null) {
+            System.err.println("Lucene Doc is null for: " + d.getUniqueId() + " but the content is " + (contents == null ? "null" : "not null"));
+            return null;
+        }
+
+        //Mask any email address present in the content of the message
+        if (ModeConfig.isPublicMode())
+            contents = Util.maskEmailDomain(contents);
+
+        return contents;
+    }
 
     public Pair<StringBuilder, Boolean> getHTMLForContents(Document d, Date date, String docId, String regexToHighlight, Set<String> highlightTerms,
                                                             Map<String, Map<String, Short>> authorisedEntities, boolean IA_links, boolean inFull, boolean showDebugInfo) throws Exception {
