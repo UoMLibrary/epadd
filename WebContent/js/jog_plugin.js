@@ -470,7 +470,6 @@ Jog.prototype.createClickHandler = function() {
 
 Jog.prototype.enableCursorKeys = function() { this.cursorKeysDisabled = false; }
 Jog.prototype.disableCursorKeys = function() { this.cursorKeysDisabled = true;}
-Jog.prototype.reloadCurrentPage = function() { page_out(currentPage, currentPage); page_in(currentPage, currentPage, ''); showCurrentPage();}
 
 	function keypress_handle(event) {
         function scrollSection(increment)

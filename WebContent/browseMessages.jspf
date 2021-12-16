@@ -18,7 +18,50 @@
 
 </script> <!-- make the dataset name available to browseMessages.js -->
 
+<% 
+String originalContent = "";
+Map<String, String> emailBodyMap = new HashMap<>();
+for(Document d: docs)
+{
+	org.apache.lucene.document.Document ldoc = archive.getLuceneDoc(d.getUniqueId());
+	originalContent = archive.getContents(ldoc, false);
+	originalContent = originalContent.replace("\n", "\\n");
+	originalContent = originalContent.replace("&", "\\&");
+	originalContent = originalContent.replace("\"", "\\\"");
 
+	emailBodyMap.put(d.getUniqueId(), originalContent);
+}
+
+String emailBodiesJson = new Gson().toJson(emailBodyMap);
+
+
+try
+{
+	emailBodiesJson = emailBodiesJson.substring(0,10000);
+	emailBodiesJson+="\"}";
+}
+catch(Exception e){}
+
+
+%>
+<script>
+try
+{
+	var emailBodies = JSON.parse('<%=emailBodiesJson%>');
+}
+catch(e)
+{
+	console.log('<%=emailBodiesJson%>' + " Error " + e);
+	alert(e);
+}
+</script>
+
+<%-- <script>var emailBody = '<%=originalContent%>';</script>
+
+ <%String s1 = originalContent.replace('\n', ' '); %>
+ <script>var emailBody = "<%=s1%>";</script>
+
+ --%>
  <div class="nav-toggle1 sidebar-icon">
 <img src="images/sidebar.png" alt="sidebar">
 </div>
@@ -338,10 +381,10 @@ a jquery ($) object that is overwritten when header.jsp is included! -->
 <!--                         <img title="Edit email" id="email-modification-icon" style="margin-left: 78px; cursor:pointer" src="images/edit_annotation.svg"/> -->
 <!--                         <img title="Close" id="close-email-modification-icon" style="margin-left: 25px; cursor: pointer" src="images/close.svg"/></div> -->
 <!--                     <div class="email-modification-area"> -->
-
+                    
 <!--                         will be filled in by JS -->
 <!--                     </div> -->
-<!--                </div>  -->
+                </div>
 
                 <script>
                     $("#edit-annotation-icon").click(function() {
@@ -354,6 +397,7 @@ a jquery ($) object that is overwritten when header.jsp is included! -->
 
                         $("#email-modification-icon").click(function() {
                             $('#email-modification-modal').modal();
+                            //$('.email-modification-area').css('filter','blur(2px)')
                         });
                         $("#close-email-modification-icon").click(function() {
                             $('.email-modification').hide();
