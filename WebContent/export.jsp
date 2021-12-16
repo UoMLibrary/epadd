@@ -355,7 +355,9 @@ Error: Export is only available in processing or appraisal modes!
                 alert("Please select at least one option!");
                 return false;
             }
-            var onlyHeadersOption= $('#only-headers-option').val();
+            /* var onlyHeadersOption= $('#only-headers-option').val(); */
+            var onlyHeadersOption=  ($('#only-headers-option').is(':checked'))? 'on': 'off';
+
             var post_params={archiveID:archiveID, data:"to-mbox", type:exportoptions, onlyHeaders:onlyHeadersOption};
             var params = epadd.convertParamsToAmpersandSep(post_params);
             fetch_page_with_progress("ajax/downloadData.jsp", "status", document.getElementById('status'), document.getElementById('status_text'), params);

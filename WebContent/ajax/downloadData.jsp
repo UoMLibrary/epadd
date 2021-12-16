@@ -229,9 +229,20 @@ try{
     try {
         pw = new PrintWriter(pathToFile, "UTF-8");
         boolean stripQuoted = true;
-        for (Document ed: docset)
+
+        int numOfMessageWritten = 0;
+        final int N_MAX_MESSAGE_TO_FLUSHED = 4*1024;    // experimental
+
+        // Try to periodically flush output stream to remedy the mbox file output crash. Experimental
+        for (Document ed: docset) {
             EmailUtils.printToMbox(archive, (EmailDocument) ed, pw,archive.getBlobStore(), stripQuoted, onlyHeaders);
 
+            numOfMessageWritten ++;
+            if (numOfMessageWritten == N_MAX_MESSAGE_TO_FLUSHED) { // experimental
+                  numOfMessageWritten = 0;
+                  pw.flush();
+            }
+        }
         pw.close();
 
          //return it's URL to download
