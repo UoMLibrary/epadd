@@ -67,11 +67,13 @@ var Navigation = function(){
     // annoying, have to declare these connector funcs, because jog is defined only in setupEvents, so can't directly use those funcs in the Navigation's interface.
     function disableCursorKeys() { jog.disableCursorKeys();}
     function enableCursorKeys() { jog.enableCursorKeys();}
+    function reloadCurrentPage() { jog.reloadCurrentPage();}
 
     return {
         setupEvents: setupEvents,
         disableCursorKeys: disableCursorKeys,
-        enableCursorKeys: enableCursorKeys
+        enableCursorKeys: enableCursorKeys,
+        reloadCurrentPage: reloadCurrentPage
     };
 }();
 
@@ -344,10 +346,35 @@ var emailModifications = function() {
 
         // things to do when modification modal is shown
         function email_modification_modal_shown() {
-                
-            emailBody = emailBodies[docIDs[PAGE_ON_SCREEN]];
-            
-            $('#email-modification-modal .modal-body').val(emailBody).focus();
+
+            //console.log('PAGE_ON_SCREEN='+ PAGE_ON_SCREEN + ' || docIDs[PAGE_ON_SCREEN]='+ docsetID + ' || archiveID=' + archiveID );
+
+            // post to the backend, and when successful, refresh the text area with email body content on screen
+            $.ajax({
+                    url : 'ajax/getBodyContentForEdit.jsp',
+                    type : 'POST',
+
+                    data : {
+                            archiveID: archiveID,
+                            docsetID: docsetID,
+                            currentPage : PAGE_ON_SCREEN,
+                    },
+
+                    dataType : 'json',
+                    success : function(response) {
+
+                                if (response && response.status==0 ) {
+						            $('#email-modification-modal .modal-body').val(response.emailBody);
+                                }
+                    },
+                    error : function() {
+                            epadd
+                            .error('There was an error loading the email body for email modification. Please try again, and if the error persists, report it to epadd_project@stanford.edu.');
+                    }
+            });
+
+            $('#email-modification-modal .modal-body').focus();
+
             Navigation.disableCursorKeys();
         }
 
@@ -369,8 +396,6 @@ var emailModifications = function() {
                         dataType : 'json',
                         success : function(response) {
                             emailModifications.refreshEmail();
-
-                                //$('.email-modification-area').text(modifiedEmail); // we can't set the annotation area to a completely empty string because it messes up rendering if the span is empty!
                         },
                         error : function() {
                             epadd
@@ -382,7 +407,7 @@ var emailModifications = function() {
         $('#email-modification-modal').on('shown.bs.modal', email_modification_modal_shown);
         $('#email-modification-modal').on('hidden.bs.modal', function() {
             Navigation.enableCursorKeys();
-            //$('.email-modification-area').css('filter', ''); /* clear the blur effect */
+            $('#email-modification-modal .modal-body').val(''); // reset the email modification modal to empty before next call
         });
 
         $('#email-modification-modal').find('#ok-button-email-modification').click(
@@ -398,7 +423,9 @@ var emailModifications = function() {
 
     // copies annotation from .annotation-area on screen to the current page's
     function refreshEmail() {
-        window.location.reload();
+        Navigation.reloadCurrentPage();
+
+        //window.location.reload();
 //        var $annotation = $('div.annotation');
 //        var $annotationarea = $('.annotation-area', $annotation);
 //        $('.annotation-area').css('filter', '');
