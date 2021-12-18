@@ -4,7 +4,6 @@
 
 <%@page language="java" import="java.util.*"%>
 <%@page language="java" import="java.io.*"%>
-<%@page language="java" import="edu.stanford.muse.datacache.*"%>
 <%@page language="java" import="edu.stanford.muse.util.*"%>
 <%@page language="java" import="edu.stanford.muse.index.*"%>
 <%@include file="../getArchive.jspf" %>

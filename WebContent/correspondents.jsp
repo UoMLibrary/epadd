@@ -42,10 +42,6 @@
 
 	</style>
 
-	<script type="text/javascript" charset="utf-8">
-        var correspondent_rownum='';      // correspondent row num corresponding to appearance order in the address book
-        var correspondent_entry='';     // correspondent detail with change
-	</script>
 </head>
 <body>
 
@@ -126,12 +122,18 @@
                $('#correspondent-entry-modification-modal .modal-body').focus();
     }
 
-	var correspondents = <%=resultArray.toString(4)%>;
+	var correspondents = <%=resultArray.toString(4)%>;	//full dataset of all correspondents
+	var selectedCorrespondent;		// a subset (1 row) of correspondents , selected correspondent under editing
+
+	var correspondents_datatable;	// instance of datatable for manipulation
+	var correspondent_rownum;      // row number of selected correspondent in datatable
+	var correspondent_entry;     // changed details of selected correspondent detail under editing
 
 	var showCorrespondentEntryModificationModel = function(rowindex) {
-	    var selectedCorrespondent = correspondents[rowindex];
-	    correspondent_entry = unescapeHTML(selectedCorrespondent[5]);     // it is the original correspondent detail from addressbook, HTML decode it
+
 		correspondent_rownum = rowindex;
+	    selectedCorrespondent = correspondents[rowindex];
+        correspondent_entry = unescapeHTML(selectedCorrespondent[5]).trim();     // default content by copying from the original correspondent detail from addressbook, HTML decode it
 
 	    $('#correspondent-entry-modification-modal').modal('show');
 	};
@@ -143,22 +145,21 @@
 		<%if(ModeConfig.isDiscoveryMode()){%>
 			return '<a target="_blank" title="' + full[5] + '" href="' + full[4] + '">' + data + '</a>'; // full[4] has the URL, full[5] has the title tooltip
         <%} else {%>
-			return '<a target="_blank" title="' + full[5] + '" href="' + full[4] + '">' + data + '</a>&nbsp; <a title="<%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "correspondents.entry.edit")%>" onclick="showCorrespondentEntryModificationModel('+ meta.row +');"><img style="height:20px;cursor:pointer;" src="images/edit_correspondent.svg"></a>';
+			return '<a target="_blank" title="' + full[5] + '" href="' + full[4] + '">' + data + '</a>&nbsp; <a title="<%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "correspondents.entry.edit")%> ' + data + '" onclick="showCorrespondentEntryModificationModel('+ meta.row +');"><img style="height:20px;cursor:pointer;" src="images/edit_correspondent.svg"></a>';
         <%}%>
 		};
 
-		$('#people').dataTable({
+		correspondents_datatable = $('#people').dataTable({
 			data: correspondents,
 			pagingType: 'simple',
 			order:[[1, 'desc']], // col 2 (sent message count), descending
+			aLengthMenu: [[ 20, 50, 100, 1000, 5000, -1], [ 20, 50, 100, 1000, 5000, "All"]],
+			iDisplayLength: 20,
 			columnDefs: [{width: "550px", targets: 0}, { className: "dt-right", "targets": [ 1,2,3 ] },{width: "50%", targets: 0},{targets: 0, render:clickable_message}], /* col 0: click to search, cols 4 and 5 are to be rendered as checkboxes */
 			fnInitComplete: function() { $('#spinner-div').hide(); $('#people').fadeIn(); }
 		});
 
 		$('#correspondent-entry-modification-modal').on('shown.bs.modal', modification_modal_shown);
-		$('#correspondent-entry-modification-modal').on('hidden.bs.modal', function() {
-                    $('#correspondent-entry-modification-modal .modal-body').val(''); // reset the modal content to empty before next call
-        });
 	} );
 
 	var exportCorrespondentHandler=function(){
@@ -212,11 +213,30 @@
         });
     }
 
+	var confirmBeforeSubmit=function(){
+
+		// retrieve the modified correspondent detail from model
+		correspondent_entry = $('#correspondent-entry-modification-modal .modal-body').val().trim();
+
+		if (correspondent_entry.includes("\n--\n")){
+			epadd.error("Action aborted because special characters -- is found");
+			return;
+		}
+
+		if (correspondent_entry!='') {
+			uploadCorrespondentEntry();
+		}else {
+				epadd.info_confirm_continue('Are you sure to remove '+selectedCorrespondent[0]+' from address book?', function () {
+					uploadCorrespondentEntry();
+				});
+		}
+	};
+
 	var uploadCorrespondentEntry=function(){
 	    // retrieve the modified correspondent detail from model
 	    correspondent_entry = $('#correspondent-entry-modification-modal .modal-body').val().trim();
 
-        $.ajax({
+		$.ajax({
             type: 'POST',
             url: "ajax/uploadCorrespondentEntry.jsp",
             data: {
@@ -227,9 +247,20 @@
             dataType: 'json',
             success: function (response) {
                 if (response && response.status==0 ) {
-            	    epadd.success('Correspondent list uploaded and applied.', function () {
-						window.location.reload();
-                    });
+					epadd.success('Correspondent list uploaded and applied.', function () { });
+					// reset the modal content to empty before next call
+					$('#correspondent-entry-modification-modal .modal-body').val('');
+
+					// update row with new data in cache
+					selectedCorrespondent[5] = escapeHTML(correspondent_entry);
+
+					// update row with new data in datatable and reload with user paging change
+					if (correspondent_entry == '') {
+						correspondents_datatable.api().row(correspondent_rownum).remove().draw(false);
+					} else {
+						correspondents_datatable.api().row(correspondent_rownum).data(selectedCorrespondent).draw(false);
+					}
+
                 } else if (response && response.status == 1){
 					epadd.error("Error uploading correspondent entry info: " + response.error);
                 } else {
@@ -242,6 +273,7 @@
             }
         });
     };
+
 </script>
 
 <div style="clear:both"></div>
@@ -292,7 +324,7 @@
 
             </textarea>
                 <div class="modal-footer">
-                    <button id='ok-button-correspondent-entry-modification' type="button" class="btn btn-default" data-dismiss="modal" onclick="uploadCorrespondentEntry();return false;">APPLY</button>
+                    <button id='ok-button-correspondent-entry-modification' type="button" class="btn btn-default" data-dismiss="modal" onclick="confirmBeforeSubmit();return false;">APPLY</button>
                 </div>
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
