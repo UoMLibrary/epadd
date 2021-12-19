@@ -130,7 +130,6 @@
 	var correspondent_entry;     // changed details of selected correspondent detail under editing
 
 	var showCorrespondentEntryModificationModel = function(rowindex) {
-
 		correspondent_rownum = rowindex;
 	    selectedCorrespondent = correspondents[rowindex];
         correspondent_entry = unescapeHTML(selectedCorrespondent[5]).trim();     // default content by copying from the original correspondent detail from addressbook, HTML decode it
@@ -256,7 +255,8 @@
 
 					// update row with new data in datatable and reload with user paging change
 					if (correspondent_entry == '') {
-						correspondents_datatable.api().row(correspondent_rownum).remove().draw(false);
+						//correspondents_datatable.api().row(correspondent_rownum).remove().draw(false);
+						window.location.reload();
 					} else {
 						correspondents_datatable.api().row(correspondent_rownum).data(selectedCorrespondent).draw(false);
 					}
