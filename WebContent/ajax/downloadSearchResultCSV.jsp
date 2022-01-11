@@ -8,7 +8,6 @@
 <%@page language="java" import="java.text.SimpleDateFormat"%>
 <%@page language="java" import="java.util.stream.Collectors"%>
 <%@page language="java" import="edu.stanford.muse.AnnotationManager.AnnotationManager"%>
-<%@page language="java" import="edu.stanford.muse.datacache.*"%>
 <%@page language="java" import="edu.stanford.muse.LabelManager.LabelManager"%>
 <%@page language="java" import="edu.stanford.muse.util.*"%>
 <%@page language="java" import="edu.stanford.muse.index.*"%>
@@ -93,7 +92,7 @@
     // Try to periodically flush output stream to remedy the mbox file output crash. Experimental
     boolean stripQuoted = "on".equals(stripquoted);
 
-    line = new ArrayList<>();
+    //line = new ArrayList<>();
 
     final SimpleDateFormat	sdf1	= new SimpleDateFormat("EEE MMM dd hh:mm:ss yyyy");
     final SimpleDateFormat	sdf2	= new SimpleDateFormat("EEE, dd MMM yyyy hh:mm:ss");
@@ -111,6 +110,7 @@
     // Transverse the document and print out one by one
     for (Document doc: selectedDocs) {
         EmailDocument ed = (EmailDocument) doc;
+        line = new ArrayList<>();
 
         d = (ed.date != null) ? ed.date : new Date();
         s = sdf1.format(d);
