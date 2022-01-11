@@ -1438,7 +1438,10 @@ after maskEmailDomain.
     public String getTextForContents(Document d) throws Exception {
         org.apache.lucene.document.Document ldoc = indexer.getDoc(d);
 
-        String contents = indexer.getContents(d, false);
+        String contents = ldoc.get("body-preserved");
+
+        if (contents == null)
+            contents = indexer.getContents(d, false);
 
         contents = Util.removeMetaTag(contents);
 
@@ -1454,12 +1457,24 @@ after maskEmailDomain.
         return contents;
     }
 
-    public Pair<StringBuilder, Boolean> getHTMLForContents(Document d, Date date, String docId, String regexToHighlight, Set<String> highlightTerms,
-                                                            Map<String, Map<String, Short>> authorisedEntities, boolean IA_links, boolean inFull, boolean showDebugInfo) throws Exception {
+        public Pair<StringBuilder, Pair<Boolean, Boolean>> getHTMLForContents(Document d, Date date, String docId, String regexToHighlight, Set<String> highlightTerms,
+                                                            Map<String, Map<String, Short>> authorisedEntities, boolean IA_links, boolean inFull, boolean showDebugInfo, boolean preserve) throws Exception {
         org.apache.lucene.document.Document ldoc = indexer.getDoc(d);
         Span[] names = getAllNamesInLuceneDoc(ldoc,true);
 
-        String contents = indexer.getContents(d, false);
+        boolean redacted = false;
+        String contents = null;
+
+        if (preserve) {
+            contents = ldoc.get("body-preserved");
+
+            if (contents!= null)
+                redacted = true;
+        }
+
+        if (!preserve || contents == null)
+           contents = indexer.getContents(d, false);
+
         //remove meta tags from the body of the message. It was a serious issue #246.
         contents = Util.removeMetaTag(contents);
         Set<String> acrs = Util.getAcronyms(contents);
@@ -1504,7 +1519,7 @@ after maskEmailDomain.
         sb.append(htmlContents);
 
         boolean overflow = false;
-        return new Pair<>(sb, overflow);
+        return new Pair<>(sb, new Pair<Boolean, Boolean>(overflow, redacted));
     }
 
     /* break up docs into clusters, based on existing docClusters

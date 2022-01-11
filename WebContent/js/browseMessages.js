@@ -4,6 +4,10 @@
 var docIDs = []; // this is required for posting the docid of the message to which the label/annotation change should be applied.
 var PAGE_ON_SCREEN = -1; // current page displayed on screen
 var TOTAL_PAGES = 0;
+var JOG_URL_PREFIX;
+var JOG_URL_PRESERVATION = JOG_URL_PREFIX + "1";
+var JOG_URL_NON_PRESERVATION = JOG_URL_PREFIX + "0";
+var MESSAGE_HAVE_REDACTED = false;   // this is a flag to indicate current message on screen has been redacted.
 
 // interacts with #page_forward, #page_back, and #pageNumbering on screen
 var Navigation = function(){
@@ -42,9 +46,19 @@ var Navigation = function(){
         // it to retry making the whole thing (the entire browser and the system) to slow down
         //TODO: JOG plugin should not be this aggressive with the logger
         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        JOG_URL_PREFIX = 'ajax/jogPageInMessages.jsp?archiveID=' + archiveID + '&datasetId=' + docsetID + '&preserveMode=';
+        JOG_URL_PRESERVATION = JOG_URL_PREFIX + "1";
+        JOG_URL_NON_PRESERVATION = JOG_URL_PREFIX + "0";
+
+        var cookie = Cookies.get('palladium-epadd-mode-preserve');
+        var currentJogURL = (cookie && cookie == "1")? JOG_URL_PRESERVATION : JOG_URL_NON_PRESERVATION;
+        //console.log("setupEvents: currentJogURL = " + currentJogURL);
+
         jog = $(document).jog({
             paging_info: {
-                url: 'ajax/jogPageInMessages.jsp?archiveID=' + archiveID + '&datasetId=' + docsetID,
+                //url: 'ajax/jogPageInMessages.jsp?archiveID=' + archiveID + '&datasetId=' + docsetID + '&preserveMode=0',
+                url: currentJogURL,
                 window_size_back: 30,
                 window_size_fwd: 50
             },
@@ -68,12 +82,14 @@ var Navigation = function(){
     function disableCursorKeys() { jog.disableCursorKeys();}
     function enableCursorKeys() { jog.enableCursorKeys();}
     function reloadCurrentPage() { jog.reloadCurrentPage();}
+    function reloadJogURL(url) {jog.reloadJogURL(url);}
 
     return {
         setupEvents: setupEvents,
         disableCursorKeys: disableCursorKeys,
         enableCursorKeys: enableCursorKeys,
-        reloadCurrentPage: reloadCurrentPage
+        reloadCurrentPage: reloadCurrentPage,
+        reloadJogURL: reloadJogURL
     };
 }();
 
@@ -419,6 +435,37 @@ var emailModifications = function() {
             $('#email-modification-modal').modal();
             return false;
         });
+
+        // when preservation is clicked, trigger navigation mode between preservation and non-preservation
+        // it is based on the existence of session cookie stored as 'palladium-epadd-mode-preserve'
+        var cookie = Cookies.get('palladium-epadd-mode-preserve');
+
+        $('#trigger-preservation').click(function() {
+            // Toggle mode between preservation and normal navigation modes
+            var newMode = (cookie == null || cookie == '0') ? true : false;     // true for Preservation mode, false for normal navigation mode
+
+            setup_upon_mode_switching(newMode);
+            window.location.reload();       // Due to some reason, upon view mode change, we have to reload the whole window screen to force refresh the jog plugin cached memory
+        });
+
+        // do some setup tasks for UI icons, toggle mode button and edit icon appearance etc.
+        if ( cookie == null || cookie == '0'){
+            // Toggle UI to normal navigation view
+            $('#plock').attr('src', 'images/lock-1.svg' );
+            //$('#trigger-email-content-link').hide();
+            $('#img-edit').hide();
+        } else {
+            // Toggle UI to preservation view
+            $('#plock').attr('src', 'images/lock-0.svg' );
+            //$('#trigger-email-content-link').show();
+            $('#img-edit').show();
+        }
+
+    }  // end Setup()
+
+    function reloadJogURL(url){
+        //console.log("browseMessage.js: reloadJogURL: "+ url)
+        Navigation.reloadJogURL(url);
     }
 
     // copies annotation from .annotation-area on screen to the current page's
@@ -446,10 +493,39 @@ var emailModifications = function() {
 //        }
     }
 
+    function setup_upon_mode_switching(inPreserveMode) {
+
+        if (inPreserveMode) {
+            // setup UI for preservation mode
+            //console.log("browseMessage.js: setup_upon_mode_switching: Toggle to preservation view");
+
+            $('#plock').attr('src', 'images/lock-0.svg' );
+            //$('#trigger-email-content-link').show();
+            $('#img-edit').show();
+            reloadJogURL(JOG_URL_PRESERVATION);
+            Cookies.set('palladium-epadd-mode-preserve', '1');
+        } else {
+            // setup UI for normal navigation mode
+            //console.log("browseMessage.js: setup_upon_mode_switching: Toggle to normal navigation view");
+            $('#plock').attr('src', 'images/lock-1.svg' );
+            //$('#trigger-email-content-link').hide();
+            $('#img-edit').hide();
+            reloadJogURL(JOG_URL_NON_PRESERVATION);
+            Cookies.set('palladium-epadd-mode-preserve', '0');
+        }
+
+        //refresh the jog view
+        emailModifications.refreshEmail();
+
+        return false;
+    }
+
     return {
         setup : setup,
         refreshEmail : refreshEmail,
-        modifiedEmail : modifiedEmail
+        modifiedEmail : modifiedEmail,
+        reloadJogURL: reloadJogURL,
+        setup_upon_mode_switching: setup_upon_mode_switching
     // debug only
     };
 }();
@@ -463,6 +539,7 @@ $(document).ready(function() {
     Labels.setup();
     Annotations.setup();
     emailModifications.setup();
+    //Preservation.setup();
     Navigation.setupEvents(); // important -- this has to be after labels and annotations setup to render the first page correctly
 
     // on page unload, release dataset to free memory

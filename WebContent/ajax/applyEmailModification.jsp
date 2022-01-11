@@ -55,10 +55,14 @@ if (docs != null)
         archive.setupForWrite();
         org.apache.lucene.document.Document ldoc = archive.getLuceneDoc(id2);
 
-       ldoc.removeField("body");
+       //ldoc.removeField("body");
+       ldoc.removeField("body-preserved");
        String content=emailBodyText;
-       ldoc.add(new Field("body", content, Indexer.full_ft));
+       ldoc.add(new Field("body-preserved", content, Indexer.full_ft));
+       //ldoc.add(new Field("body", content, Indexer.full_ft));
        archive.updateDocument(ldoc);
+       EmailDocument ed = archive.docForId(id2);
+       //ed.setRedacted(true);
        archive.close();
        //prepare to read again.
        archive.openForRead();

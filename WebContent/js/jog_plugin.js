@@ -471,6 +471,7 @@ Jog.prototype.createClickHandler = function() {
 Jog.prototype.enableCursorKeys = function() { this.cursorKeysDisabled = false; }
 Jog.prototype.disableCursorKeys = function() { this.cursorKeysDisabled = true;}
 Jog.prototype.reloadCurrentPage = function() { page_out(currentPage, currentPage); page_in(currentPage, currentPage, ''); showCurrentPage();}
+Jog.prototype.reloadJogURL = function(url) { settings.paging_info.url = url;}
 
 	function keypress_handle(event) {
         function scrollSection(increment)
