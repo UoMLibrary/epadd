@@ -53,7 +53,6 @@ var Navigation = function(){
 
         var cookie = Cookies.get('palladium-epadd-mode-preserve');
         var currentJogURL = (cookie && cookie == "1")? JOG_URL_PRESERVATION : JOG_URL_NON_PRESERVATION;
-        //console.log("setupEvents: currentJogURL = " + currentJogURL);
 
         jog = $(document).jog({
             paging_info: {
@@ -451,20 +450,19 @@ var emailModifications = function() {
         // do some setup tasks for UI icons, toggle mode button and edit icon appearance etc.
         if ( cookie == null || cookie == '0'){
             // Toggle UI to normal navigation view
-            $('#plock').attr('src', 'images/lock-1.svg' );
-            //$('#trigger-email-content-link').hide();
-            $('#img-edit').hide();
+            $('#plock').attr('src', 'images/lock-0.svg' );
+            $('#plock').attr('title', 'Toggle to perservation view' );
+            $('#img-edit').show();
         } else {
             // Toggle UI to preservation view
-            $('#plock').attr('src', 'images/lock-0.svg' );
-            //$('#trigger-email-content-link').show();
-            $('#img-edit').show();
+            $('#plock').attr('src', 'images/lock-1.svg' );
+            $('#plock').attr('title', 'Toggle to normal view' );
+            $('#img-edit').hide();
         }
 
     }  // end Setup()
 
     function reloadJogURL(url){
-        //console.log("browseMessage.js: reloadJogURL: "+ url)
         Navigation.reloadJogURL(url);
     }
 
@@ -497,19 +495,16 @@ var emailModifications = function() {
 
         if (inPreserveMode) {
             // setup UI for preservation mode
-            //console.log("browseMessage.js: setup_upon_mode_switching: Toggle to preservation view");
-
-            $('#plock').attr('src', 'images/lock-0.svg' );
-            //$('#trigger-email-content-link').show();
-            $('#img-edit').show();
+            $('#plock').attr('src', 'images/lock-1.svg' );
+            $('#plock').attr('title', 'Toggle to normal view' );
+            $('#img-edit').hide();
             reloadJogURL(JOG_URL_PRESERVATION);
             Cookies.set('palladium-epadd-mode-preserve', '1');
         } else {
             // setup UI for normal navigation mode
-            //console.log("browseMessage.js: setup_upon_mode_switching: Toggle to normal navigation view");
-            $('#plock').attr('src', 'images/lock-1.svg' );
-            //$('#trigger-email-content-link').hide();
-            $('#img-edit').hide();
+            $('#plock').attr('src', 'images/lock-0.svg' );
+            $('#plock').attr('title', 'Toggle to preservation view' );
+            $('#img-edit').show();
             reloadJogURL(JOG_URL_NON_PRESERVATION);
             Cookies.set('palladium-epadd-mode-preserve', '0');
         }
@@ -539,7 +534,6 @@ $(document).ready(function() {
     Labels.setup();
     Annotations.setup();
     emailModifications.setup();
-    //Preservation.setup();
     Navigation.setupEvents(); // important -- this has to be after labels and annotations setup to render the first page correctly
 
     // on page unload, release dataset to free memory

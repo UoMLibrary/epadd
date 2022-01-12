@@ -55,14 +55,16 @@ if (docs != null)
         archive.setupForWrite();
         org.apache.lucene.document.Document ldoc = archive.getLuceneDoc(id2);
 
-       //ldoc.removeField("body");
-       ldoc.removeField("body-preserved");
-       String content=emailBodyText;
-       ldoc.add(new Field("body-preserved", content, Indexer.full_ft));
-       //ldoc.add(new Field("body", content, Indexer.full_ft));
+        // clone the original email content to new field for preservation
+        String originalContent = ldoc.get("body");
+        ldoc.add(new Field("body-preserved", originalContent, Indexer.full_ft));
+
+        // update (remove and then add back) email content with redacted content
+       ldoc.removeField("body");
+       ldoc.add(new Field("body", emailBodyText, Indexer.full_ft));
+
        archive.updateDocument(ldoc);
        EmailDocument ed = archive.docForId(id2);
-       //ed.setRedacted(true);
        archive.close();
        //prepare to read again.
        archive.openForRead();

@@ -1438,10 +1438,7 @@ after maskEmailDomain.
     public String getTextForContents(Document d) throws Exception {
         org.apache.lucene.document.Document ldoc = indexer.getDoc(d);
 
-        String contents = ldoc.get("body-preserved");
-
-        if (contents == null)
-            contents = indexer.getContents(d, false);
+        String contents = indexer.getContents(d, false);
 
         contents = Util.removeMetaTag(contents);
 
@@ -1465,12 +1462,14 @@ after maskEmailDomain.
         boolean redacted = false;
         String contents = null;
 
-        if (preserve) {
-            contents = ldoc.get("body-preserved");
+        String redactedContent = ldoc.get("body-preserved");
 
-            if (contents!= null)
-                redacted = true;
-        }
+        // if there is a preservation copy, we assume the email has been redacted
+        if (!preserve && redactedContent!= null)
+            redacted = true;
+
+        if (preserve)
+            contents = redactedContent;
 
         if (!preserve || contents == null)
            contents = indexer.getContents(d, false);
