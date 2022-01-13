@@ -815,6 +815,9 @@ int errortype=0;
         return indexer.getContents(ldoc, originalContentOnly);
     }
 
+    public String getPreservedContents(Document d) {
+        return indexer.getPreservedContents(d);
+    }
     /*
     private void setupAddressBook(List<Document> docs) {
         // in this case, we don't care whether email addrs are incoming or

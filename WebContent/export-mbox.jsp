@@ -55,7 +55,7 @@
 
     <br/>
 
-    <a id="a-download-mbox-file-link" href="#">Download mbox file</a>
+    <a id="a-download-mbox-file-link" href="#">Download mbox file for email redaction copy</a>
     <p></p>
     This file is in mbox format, and can be accessed with many email clients (e.g. <a href="http://www.mozillamessaging.com/">Thunderbird</a>.)
     It can also be viewed with a text editor.<br/>
@@ -67,7 +67,7 @@
 
     <a id="a-download-search-result-csv-link" href="#">Download search result in csv format</a>
     <p></p>
-    Download search result in csv format
+    This file is in csv format, and contains header information only. It can be viewed in either Excel or a text editor.
     </p>
 
     <br/>

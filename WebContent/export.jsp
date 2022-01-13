@@ -285,16 +285,16 @@ Error: Export is only available in processing or appraisal modes!
 
     <section>
         <div class="panel" id="export-headers">
-            <div class="panel-heading">Export headers (CSV)</div>
+            <div class="panel-heading"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.headers-file")%></div>
 
             <div class="one-line">
                 <div class="form-group col-sm-8">
-                    <label for="export-headers-file">Specify location</label>
+                    <label for="export-headers-file"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.headers-file-specify-location")%></label>
                     <input id="export-headers-file" class="dir form-control" type="text" name="name" value=""/>
                 </div>
                 <div class="form-group col-sm-4 picker-buttons">
-                    <button id="export-headers-browse" class="btn-default browse-button">Browse</button>
-                    <button id="export-headers-do" style="margin-left: 10px;" class="go-button faded btn-default">Export</button>
+                    <button id="export-headers-browse" class="btn-default browse-button"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.headers-file-browse")%></button>
+                    <button id="export-headers-do" style="margin-left: 10px;" class="go-button faded btn-default"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.headers-file-export")%></button>
                 </div>
             </div>
 
@@ -322,6 +322,18 @@ Error: Export is only available in processing or appraisal modes!
             <div class="panel-heading"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.export-mbox-message")%></div>
             <div class="one-line">
                 <div class="form-group col-sm-8">
+                <label for="export-mbox">Email Store</label>
+                <select id="export-mbox-copy-options" name="export-mbox-copy-options" class="form-control selectpicker">
+                    <option value="" selected disabled><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.select")%></option>
+                    <option value = "redacted"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.email-store-redacted")%></option>
+                    <option value = "preserved"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.email-store-preserved")%></option>
+                </select>
+                </div>
+            </div>
+            <br/>
+            <div class="one-line">
+                <div class="form-group col-sm-8">
+                    <label for="export-mbox">Exported Message</label>
                     <select id="export-mbox-options" name="export-mbox-options" class="form-control selectpicker">
                         <option value="" selected disabled><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.select")%></option>
                         <option value = "all"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.mess-all")%></option>
@@ -333,7 +345,7 @@ Error: Export is only available in processing or appraisal modes!
                     <div class="checkbox-inline" style="padding:0px 0px 0px 15px">
                         <label>
                             <input type="checkbox" id="only-headers-option" name="only-headers-option" checked>
-                            <span class="label-text">Headers Only</span>
+                            <span class="label-text"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.header-only")%></span>
                         </label>
                     </div>
                 </div>
@@ -351,14 +363,15 @@ Error: Export is only available in processing or appraisal modes!
     <script>
         $('#export-mbox .go-button').click (function(e) {
             var exportoptions= $('#export-mbox-options').val();
-            if(!exportoptions){
+            var copyType = $('#export-mbox-copy-options').val();
+            if(!exportoptions || !copyType){
                 alert("Please select at least one option!");
                 return false;
             }
             /* var onlyHeadersOption= $('#only-headers-option').val(); */
             var onlyHeadersOption=  ($('#only-headers-option').is(':checked'))? 'on': 'off';
 
-            var post_params={archiveID:archiveID, data:"to-mbox", type:exportoptions, onlyHeaders:onlyHeadersOption};
+            var post_params={archiveID:archiveID, data:"to-mbox", type:exportoptions, onlyHeaders:onlyHeadersOption, copyType:copyType};
             var params = epadd.convertParamsToAmpersandSep(post_params);
             fetch_page_with_progress("ajax/downloadData.jsp", "status", document.getElementById('status'), document.getElementById('status_text'), params);
             /*

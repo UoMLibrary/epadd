@@ -200,6 +200,8 @@ try{
     }else if(query.equals("to-mbox")){
 
         String type=JSPHelper.getParam(params,"type");
+        String copyType=JSPHelper.getParam(params,"copyType");
+        boolean redactedCopy = "redacted".equals(copyType);
         Set<Document> docset = null;
         String fnameprefix=null;
         Archive.Export_Mode mode=null;
@@ -228,14 +230,15 @@ try{
     PrintWriter pw = null;
     try {
         pw = new PrintWriter(pathToFile, "UTF-8");
-        boolean stripQuoted = true;
+        //boolean stripQuoted = true;
+        boolean stripQuoted = (!redactedCopy);  //turn off stripQuoted only when export from redacted store
 
         int numOfMessageWritten = 0;
         final int N_MAX_MESSAGE_TO_FLUSHED = 4*1024;    // experimental
 
         // Try to periodically flush output stream to remedy the mbox file output crash. Experimental
         for (Document ed: docset) {
-            EmailUtils.printToMbox(archive, (EmailDocument) ed, pw,archive.getBlobStore(), stripQuoted, onlyHeaders);
+            EmailUtils.printToMbox(archive, (EmailDocument) ed, pw,archive.getBlobStore(), stripQuoted, onlyHeaders, redactedCopy);
 
             numOfMessageWritten ++;
             if (numOfMessageWritten == N_MAX_MESSAGE_TO_FLUSHED) { // experimental

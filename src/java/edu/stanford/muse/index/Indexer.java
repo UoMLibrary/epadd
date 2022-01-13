@@ -22,6 +22,7 @@ import edu.stanford.muse.email.StatusProvider;
 import edu.stanford.muse.lang.Languages;
 import edu.stanford.muse.ner.NER;
 import edu.stanford.muse.util.*;
+import edu.stanford.muse.webapp.JSPHelper;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
@@ -2048,14 +2049,49 @@ is what we want.
         return doc.get("title");
     }
 
+	String getPreservedContents(edu.stanford.muse.index.Document d)
+	{
+		org.apache.lucene.document.Document doc;
+		try {
+			doc = getDoc(d);
+		} catch (IOException e) {
+			log.warn("Unable to obtain document " + d.getUniqueId() + " from index");
+			e.printStackTrace();
+			return null;
+		}
+
+		return getPreservedContents(doc);
+	}
+
+	String getPreservedContents(org.apache.lucene.document.Document doc) {
+		String contents;
+		try {
+			JSPHelper.log.info("getPreservedContents: get body-preserved");
+			contents = doc.get("body-preserved");
+
+			if (contents == null) {
+				contents = doc.get("body");
+				JSPHelper.log.info("getPreservedContents: get body!!!");
+			}
+
+		} catch (Exception e) {
+			log.warn("Exception " + e + " trying to read field 'body_preserved/body': " + Util.ellipsize(Util.stackTrace(e), 350));
+			//@TODO
+			Util.print_exception("Exception Trying to read field body_preserved/body",e,log);
+			contents = null;
+		}
+
+		return contents;
+	}
+
     //@TODO
 	String getContents(org.apache.lucene.document.Document doc, boolean originalContentOnly) {
         String contents;
         try {
-            if (originalContentOnly)
-                contents = doc.get("body_original");
-            else
-                contents = doc.get("body");
+				if (originalContentOnly)
+					contents = doc.get("body_original");
+				else
+					contents = doc.get("body");
         } catch (Exception e) {
             log.warn("Exception " + e + " trying to read field 'body/body_original': " + Util.ellipsize(Util.stackTrace(e), 350));
             //@TODO
