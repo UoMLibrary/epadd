@@ -54,8 +54,11 @@
     <div id="spinner-div" style="display:none; text-align:center; position:fixed; left:50%; top:50%"><img style="height:20px" src="images/spinner.gif"/></div>
 
     <br/>
-
-    <a id="a-download-mbox-file-link" href="#">Download mbox file for email redaction copy</a>
+    <% if (ModeConfig.isProcessingMode() ) { %>
+        <a id="a-download-mbox-file-link" href="#">Download mbox file from redacted email store</a>
+    <% } else {%>
+        <a id="a-download-mbox-file-link" href="#">Download mbox file</a>
+    <% } %>
     <p></p>
     This file is in mbox format, and can be accessed with many email clients (e.g. <a href="http://www.mozillamessaging.com/">Thunderbird</a>.)
     It can also be viewed with a text editor.<br/>

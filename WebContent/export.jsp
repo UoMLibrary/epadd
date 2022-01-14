@@ -170,7 +170,7 @@ Error: Export is only available in processing or appraisal modes!
             Messages not to export
         </div>
     </div>
-    <br/>
+
     <br/>
 --%>
     <section>
@@ -320,17 +320,21 @@ Error: Export is only available in processing or appraisal modes!
     <section>
         <div class="panel" id="export-mbox">
             <div class="panel-heading"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.export-mbox-message")%></div>
-            <div class="one-line">
-                <div class="form-group col-sm-8">
-                <label for="export-mbox">Email Store</label>
-                <select id="export-mbox-copy-options" name="export-mbox-copy-options" class="form-control selectpicker">
-                    <option value="" selected disabled><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.select")%></option>
-                    <option value = "redacted"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.email-store-redacted")%></option>
-                    <option value = "preserved"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.email-store-preserved")%></option>
-                </select>
+            <% if (ModeConfig.isProcessingMode()) {%>
+                <div class="one-line">
+                    <div class="form-group col-sm-8">
+                    <label for="export-mbox">Email Store</label>
+                    <select id="export-mbox-copy-options" name="export-mbox-copy-options" class="form-control selectpicker">
+                        <option value="" selected disabled><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.select")%></option>
+                            <option value = "redacted"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.email-store-redacted")%></option>
+                        <option value = "preserved"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.email-store-preserved")%></option>
+                    </select>
+                    </div>
                 </div>
-            </div>
-            <br/>
+                <br/>
+            <% } else { %>
+                <input type="hidden" id="export-mbox-copy-options" name="export-mbox-copy-options" value="redacted"/>
+            <% } %>
             <div class="one-line">
                 <div class="form-group col-sm-8">
                     <label for="export-mbox">Exported Message</label>
