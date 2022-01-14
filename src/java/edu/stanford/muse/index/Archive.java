@@ -1200,6 +1200,7 @@ int errortype=0;
         String statusmsg = export_mode==Export_Mode.EXPORT_APPRAISAL_TO_PROCESSING? "Exporting to Processing":(export_mode==Export_Mode.EXPORT_PROCESSING_TO_DISCOVERY?"Exporting to Discovery":"Exporting to Delivery");
 
         boolean exportInPublicMode = export_mode==Export_Mode.EXPORT_PROCESSING_TO_DISCOVERY;
+        boolean exportInDelivery = export_mode==Export_Mode.EXPORT_PROCESSING_TO_DELIVERY;
         setStatusProvider.accept(new StaticStatusProvider(statusmsg+":"+"Preparing base directory.."));
 
         Archive.prepareBaseDir(out_dir);
@@ -1272,6 +1273,26 @@ int errortype=0;
                     doc.add(new Field("title", redacted_title, Indexer.full_ft));
                 }
             }
+
+            // if export to Delivery mode, we now mask all email addresses here to negate data protection concerns with full email address of people living/active.
+            if (exportInDelivery){
+                String textNoEmails;
+                String text = doc.get("title");
+                if (text != null)
+                {
+                    doc.removeFields("title");
+                    textNoEmails = Util.maskEmail(text);
+                    doc.add(new Field("title", textNoEmails, Indexer.full_ft));
+                }
+
+                text = doc.get("body");
+                if (text != null)
+                {
+                    doc.removeFields("body");
+                    textNoEmails = Util.maskEmail(text);
+                    doc.add(new Field("body", textNoEmails, Indexer.full_ft));
+                }
+            }
             return true;
         };
 
@@ -1331,7 +1352,7 @@ after maskEmailDomain.
         //change base directory
         setBaseDir(out_dir);
 
-        if (exportInPublicMode) {
+        if (exportInPublicMode|| exportInDelivery) {
             List<Document> docs = this.getAllDocs();
             List<EmailDocument> eds = new ArrayList<>();
             for (Document doc : docs)
