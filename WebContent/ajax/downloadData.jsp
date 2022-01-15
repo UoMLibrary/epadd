@@ -221,6 +221,9 @@ try{
             alldocs.removeAll(docset);//now alldocs contain those messages which are not exported,i.e. are restricted.
             docset=alldocs;
             fnameprefix="restricted-messages";
+        } else if(type.equals("permissive")){
+            docset = new LinkedHashSet<>(archive.getDocsForExport(Archive.Export_Mode.EXPORT_PROCESSING_TO_DELIVERY, true));
+            fnameprefix="permissive-messages";
         }
 
     String onlyHeadersString=JSPHelper.getParam(params,"onlyHeaders");

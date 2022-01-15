@@ -221,6 +221,7 @@ a jquery ($) object that is overwritten when header.jsp is included! -->
                                     Set<Label> restrlabels = archive.getLabelManager().getAllLabels(LabelManager.LabType.RESTRICTION);
                                     //get general labels
                                     Set<Label> genlabels = archive.getLabelManager().getAllLabels(LabelManager.LabType.GENERAL);
+                                    Set<Label> premlabels = archive.getLabelManager().getAllLabels(LabelManager.LabType.PERMISSION);
                                     for (Label opt : restrlabels){
                                 %>
                                 <option value = "<%=opt.getLabelID()%>"><%=opt.getLabelName()%></option>
@@ -229,6 +230,13 @@ a jquery ($) object that is overwritten when header.jsp is included! -->
                             <optgroup label="General Labels">
                                 <%
                                     for (Label opt : genlabels){
+                                %>
+                                <option value = "<%=opt.getLabelID()%>"><%=opt.getLabelName()%></option>
+                                <%}%>
+                            </optgroup>
+                            <optgroup label="Permission Labels">
+                                <%
+                                    for (Label opt : premlabels){
                                 %>
                                 <option value = "<%=opt.getLabelID()%>"><%=opt.getLabelName()%></option>
                                 <%}%>

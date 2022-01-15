@@ -447,6 +447,14 @@
 							<select name="labelIDs" id="labelIDs" class="label-selectpicker form-control multi-select selectpicker" title="Select" multiple>
 								<option value="" selected disabled><%=edu.stanford.muse.util.Messages.getMessage(archiveID,"messages", "advanced-search.select")%></option>
 								<% if(!ModeConfig.isDeliveryMode()){ %>
+								<optgroup label="Permission Labels">
+										<%
+									Set<Label> permlabels = archive.getLabelManager().getAllLabels(LabelManager.LabType.PERMISSION);
+									for (Label opt : permlabels){
+								%>
+									<option value = "<%=opt.getLabelID()%>"><%=opt.getLabelName()%></option>
+								<%}%>
+
 								<optgroup label="Restriction Labels">
 								<%
 									Set<Label> restrlabels = archive.getLabelManager().getAllLabels(LabelManager.LabType.RESTRICTION);

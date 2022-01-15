@@ -70,9 +70,10 @@ Archive archive = JSPHelper.getArchive(params);
     AddressBook addressBook = archive.addressBook;
 	String bestName = addressBook.getBestNameForSelf().trim();
 	String rawDir = JSPHelper.getParam(params,"dir");
+    boolean permLabelOnly = "on".equals(JSPHelper.getParam(params,"permLabelOnly"));
 	String dir = new File(rawDir).getAbsolutePath();
 	 String error="";
-
+    System.out.println("export-from-processing: permLabelOnly = "+ permLabelOnly);  //debug
 	File file = new File(dir);
 	if (!file.isDirectory() || !file.canWrite()) {
 		error = "Sorry, the directory " + dir + " is not writable. Please select a different directory.";
@@ -94,7 +95,8 @@ Archive archive = JSPHelper.getArchive(params);
 	String folderPublic = dir + File.separator + "ePADD archive of " + bestName + "-Discovery";
 	//same set of docs are exported from processing to delivery or discovery only difference being the
 		//content of these messages. In case of processing to discovery mode the redaction takes place.
-	List<Document> docsToExport = archive.getDocsForExport(Archive.Export_Mode.EXPORT_PROCESSING_TO_DELIVERY);
+		System.out.println("export-from-processing: before call getDocsForExport: permLabelOnly = "+ permLabelOnly);  //debug
+	List<Document> docsToExport = archive.getDocsForExport(Archive.Export_Mode.EXPORT_PROCESSING_TO_DELIVERY, permLabelOnly);
 
 	/*
 	Before v5 we faced an issue where after exporting to delivery/discovery the document's content got
@@ -139,7 +141,7 @@ Archive archive = JSPHelper.getArchive(params);
 	//Read archive from folderPublic directory and operate on that.
 	//Archive forDeliveryPublic = SimpleSessions.readArchiveIfPresent(folderPublic);
 	//With the introduction of 'Transfer only to Delivery' label, the set of docs exported to Delivery will not be same for Discovery.
-	docsToExport = archive.getDocsForExport(Archive.Export_Mode.EXPORT_PROCESSING_TO_DISCOVERY);
+	docsToExport = archive.getDocsForExport(Archive.Export_Mode.EXPORT_PROCESSING_TO_DISCOVERY, permLabelOnly);
 	JSPHelper.log.info("Exporting for discovery");
 	/*v6- why were we exporting correspondent authority file separately? Removed now.
 		try {

@@ -176,7 +176,31 @@ Error: Export is only available in processing or appraisal modes!
     <section>
         <div class="panel">
             <div class="panel-heading"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.next-module")%></div>
-
+            <% if (ModeConfig.isProcessingMode()) { %>
+<%--
+                <div class="one-line">
+                    <div class="checkbox-inline" style="padding:0px 0px 0px 15px">
+                        <label>
+                            <input type="checkbox" id="permissionLabelOnly" name="permissionLabelOnly" checked>
+                            <span class="label-text"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.permission-label-only")%></span>
+                        </label>
+                    </div>
+                </div>
+--%>
+            <div class="one-line">
+                <fieldset name="message-filter" id="message-filter" class="comman-radio">
+                     <label class="radio-inline">
+                        <input name="message-filter" value="non-restricted" type="radio">
+                        <span class="text-radio"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.mess-filter-non-restricted")%></span>
+                    </label>
+                    <label class="radio-inline">
+                        <input name="message-filter" value="permissive" type="radio" checked>
+                        <span class="text-radio"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.mess-filter-permissive")%></span>
+                    </label>
+                </fieldset>
+            </div>
+            <br/>
+            <% } %>
             <div class="one-line" id="export-next">
                 <div class="form-group col-sm-8">
                     <label for="export-next-file"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.specify-location")%></label>
@@ -323,7 +347,7 @@ Error: Export is only available in processing or appraisal modes!
             <% if (ModeConfig.isProcessingMode()) {%>
                 <div class="one-line">
                     <div class="form-group col-sm-8">
-                    <label for="export-mbox">Email Store</label>
+                    <label for="export-mbox"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.email-store")%></label>
                     <select id="export-mbox-copy-options" name="export-mbox-copy-options" class="form-control selectpicker">
                         <option value="" selected disabled><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.select")%></option>
                             <option value = "redacted"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.email-store-redacted")%></option>
@@ -337,12 +361,15 @@ Error: Export is only available in processing or appraisal modes!
             <% } %>
             <div class="one-line">
                 <div class="form-group col-sm-8">
-                    <label for="export-mbox">Exported Message</label>
+                    <label for="export-mbox"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.mess-exported")%></label>
                     <select id="export-mbox-options" name="export-mbox-options" class="form-control selectpicker">
                         <option value="" selected disabled><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.select")%></option>
                         <option value = "all"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.mess-all")%></option>
-                        <option value = "non-restricted"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.mess-non-restricted")%></option>
                         <option value = "restricted"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.mess-restricted")%></option>
+                        <option value = "non-restricted"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.mess-non-restricted")%></option>
+                        <% if (ModeConfig.isProcessingMode() ) { %>
+                            <option value = "permissive"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.mess-permissive")%></option>
+                        <% } %>
                     </select>
                 </div>
                 <div class="one-line">
@@ -571,7 +598,19 @@ Error: Export is only available in processing or appraisal modes!
                     }(dir);
                 }
                 //window.location = baseUrl + '?archiveID=<%=archiveID%>&dir=' + dir;
-                var post_params = {archiveID: archiveID, dir: dir};
+                //var post_params = {archiveID: archiveID, dir: dir};
+
+                var messFilter = $("input[name='message-filter']:checked").val();
+
+                //var permLabelOnly = ($('#permissionLabelOnly').is(':checked'))? 'on' : 'off';
+                var permLabelOnly = ("permissive" ===messFilter)? 'on' : 'off';
+
+                var post_params = {
+                    archiveID: archiveID,
+                    dir: dir,
+                    permLabelOnly: permLabelOnly
+                };
+
                 var params = epadd.convertParamsToAmpersandSep(post_params);
                 fetch_page_with_progress(baseUrl, "status", document.getElementById('status'), document.getElementById('status_text'), params,promptmethod);
             }else{

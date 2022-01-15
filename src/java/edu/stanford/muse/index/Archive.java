@@ -1084,9 +1084,12 @@ int errortype=0;
 	 * true; }
 	 */
 
+    public List<Document> getDocsForExport(Export_Mode mode) {
+        return getDocsForExport(mode, false);
+    }
 
     /** Get docs for export based on the module for which exporting is taking place*/
-    public List<Document> getDocsForExport(Export_Mode mode) {
+    public List<Document> getDocsForExport(Export_Mode mode, boolean permLabelOnly) {
         List<Document> docsToExport = new LinkedList<>();
         if (mode == Export_Mode.EXPORT_APPRAISAL_TO_PROCESSING) {
             //any message with DNT label will not be transferred
@@ -1101,6 +1104,7 @@ int errortype=0;
             //get a set of timed-restriction ids from LabelManager
             Set<String> genRestriction = getLabelManager().getGenRestrictions();
             Set<String> timedRestriction = getLabelManager().getTimedRestrictions();
+            Set<String> permRestriction = getLabelManager().getPermRestrictions();
             //any message with any general restriction label (including DNT) will not be transferred
             //any message with timed-restriction label whose date is not over, will not be transferred
             //everything else will be transferred.
@@ -1110,6 +1114,7 @@ int errortype=0;
                 //if it contains any general restriction label
                 boolean genfine = true;
                 boolean timefine =true;
+                boolean permfine = false;
                 if (Util.setIntersection(getLabelIDs(ed), genRestriction).size() != 0) {
                     //if gen restriction - DNT then it must contain cfr label for export (unless timed restriction stops it)
                     boolean isDNT = getLabelIDs(ed).contains(LabelManager.LABELID_DNT);
@@ -1140,6 +1145,19 @@ int errortype=0;
                 }
                 if(!timefine) {
                     continue;
+                }
+                //System.out.println("export-from-processing: before checking permission label "); //debug
+                // if permission label only option is set on when export to next module, further check if there are permission labels.
+                if (permLabelOnly) {
+                    //If permission label is found then export it
+                    if (Util.setIntersection(getLabelIDs(ed), permRestriction).size() != 0) {
+                        //System.out.println("export-from-processing: permission label found and then export it"); //debug
+                        permfine = true;
+                    }
+
+                    if (!permfine) {
+                        continue;
+                    }
                 }
                     //else export it
                     docsToExport.add(d);
@@ -2013,7 +2031,12 @@ after maskEmailDomain.
             array.put (2, label.getDescription());
             array.put (3, docCount);
             array.put (4, label.isSysLabel());
-            String labelTypeDescription = LabelManager.LabType.RESTRICTION.equals(label.getType()) ? "Restriction" : "General";
+            //String labelTypeDescription = LabelManager.LabType.RESTRICTION.equals(label.getType()) ? "Restriction" : "General";
+            String labelTypeDescription = "General";
+            if (LabelManager.LabType.RESTRICTION.equals(label.getType()))
+                labelTypeDescription = "Restriction";
+            else if (LabelManager.LabType.PERMISSION.equals(label.getType()))
+                labelTypeDescription = "Permission";
 
             if (LabelManager.LabType.RESTRICTION.equals(label.getType()) && LabelManager.RestrictionType.RESTRICTED_FOR_YEARS.equals (label.getRestrictionType())) {
                 labelTypeDescription += " for " + Util.pluralize(label.getRestrictedForYears(), "year");
