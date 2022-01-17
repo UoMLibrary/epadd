@@ -1148,6 +1148,9 @@ public class SearchResult {
     }
     private static SearchResult filterForLabelsAndMultipleRestrictionLabels(SearchResult inputSet){
         Collection<String> neededLabelIDs = JSPHelper.getParams(inputSet.queryParams, "labelIDs"); // this can come in as a single parameter with multiple values (in case of multiple selections by the user)
+        String haveOrNotLabels = JSPHelper.getParam(inputSet.queryParams, "haveOrNotLabels");
+        boolean haveIndicator = "have".equals(haveOrNotLabels);     //indicator of "have" or "have-not" logic
+
         if(Util.nullOrEmpty(neededLabelIDs))
             return filterForMultipleRestrictionLabels(inputSet);
 
@@ -1164,7 +1167,9 @@ public class SearchResult {
             Set<String> intersection = Util.setIntersection(labIDs,neededLabelIDs);
            /* if(intersection.equals(neededLabelIDs))//if all neededlabIDs were present in the document label set then add it to output doc set.
                 outputDocs.put(k,inputSet.matchedDocs.get(k));--- It is for AND of labelname options*/
-           if(!intersection.isEmpty()){ //means at least one of the selected labels were present then add this doc
+           if((haveIndicator && !intersection.isEmpty()) || (!haveIndicator && intersection.isEmpty())){
+               //if haveIndicator == true, means at least one of the selected labels were present then add this doc ("have" logic)
+               // if haveIndicator == false, means none of the selected labels were present then add this doc ("have not" logic)
                outputDocs.put(k,inputSet.matchedDocs.get(k));
 
            }
