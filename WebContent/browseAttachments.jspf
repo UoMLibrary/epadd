@@ -217,6 +217,7 @@ a jquery ($) object that is overwritten when header.jsp is included! -->
             $('#attachments').dataTable({
                 data: attachmentDetails,
                 pagingType: 'simple',
+                autoWidth: false,
                 columnDefs: [{targets: 0,render:clickable_message},
                     {targets:3,render:clickable_attachment},
                     {targets:4, render:clickable_normalization_info}, ///This is the only difference between two instantiations of datatable.
@@ -235,6 +236,7 @@ a jquery ($) object that is overwritten when header.jsp is included! -->
                     { data: 'size' },
                     { data: 'filename' }
                 ],
+                autoWidth: false,
                 columnDefs: [{targets: 0,render:clickable_message},
                     {targets:3,render:clickable_attachment},
                     {targets:1,width:'180px',className: "dt-right"},

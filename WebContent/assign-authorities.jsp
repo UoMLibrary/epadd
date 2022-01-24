@@ -292,6 +292,7 @@
             data: tableEntries,
             // pagingType: 'simple',
             order:[[1, 'desc']], // col 12 (outgoing message count), descending
+            autoWidth: false,
             columnDefs: [
                     {width: "300px", targets: 0},
                     {className: "dt-right", "targets": 1 },
