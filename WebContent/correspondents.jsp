@@ -25,6 +25,7 @@
 
 	<script type="text/javascript" src="bootstrap/dist/js/bootstrap.min.js"></script>
 	<script src="js/jquery.dataTables.min.js"></script>
+    <script src="js/jquery.dataTables.select.min.js"></script>
 
 	<script src="js/modernizr.min.js"></script>
 	<script src="js/sidebar.js"></script>
@@ -96,9 +97,10 @@
 <div style="margin:auto; width:1100px">
 	<div class="button_bar_on_datatable">
 	<div title=" <%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "correspondents.graph")%> " class="buttons_on_datatable" onclick="window.location='graph?archiveID=<%=archiveID%>&view=people'"><img class="button_image_on_datatable" src="images/graph.svg"></div>
-		<%if(!ModeConfig.isDiscoveryMode()){%>
-	<div title=" <%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "correspondents.edit")%> " class="buttons_on_datatable" onclick="window.location='edit-correspondents?archiveID=<%=archiveID%>'"><img class="button_image_on_datatable" src="images/edit_correspondents.svg"></div>
-		<div title=" <%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "correspondents.upload")%> " class="buttons_on_datatable" onclick="$('#correspondent-upload-modal').modal('show');"><img class="button_image_on_datatable" src="images/upload.svg"></div>
+		<%if(!ModeConfig.isDiscoveryMode() && !ModeConfig.isDeliveryMode()){%>
+	        <div title=" <%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "correspondents.edit")%> " class="buttons_on_datatable" onclick="window.location='edit-correspondents?archiveID=<%=archiveID%>'"><img class="button_image_on_datatable" src="images/edit_correspondent.svg"></div>
+	        <div title=" <%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "correspondents.merge")%> " class="buttons_on_datatable" onclick="confirmBeforeMerge()"><img class="button_image_on_datatable" src="images/merge_correspondents.svg"></div>
+		    <div title=" <%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "correspondents.upload")%> " class="buttons_on_datatable" onclick="$('#correspondent-upload-modal').modal('show');"><img class="button_image_on_datatable" src="images/upload.svg"></div>
 		<%}%>
 		<div title=" <%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "correspondents.download")%> " class="buttons_on_datatable" onclick="exportCorrespondentHandler()"><img class="button_image_on_datatable" src="images/download.svg"></div>
 	</div>
@@ -122,7 +124,7 @@
                $('#correspondent-entry-modification-modal .modal-body').focus();
     }
 
-	var correspondents = <%=resultArray.toString(4)%>;	//full dataset of all correspondents
+	var correspondents = <%=resultArray.toString(5)%>;	//full dataset of all correspondents
 	var selectedCorrespondent;		// a subset (1 row) of correspondents , selected correspondent under editing
 
 	var correspondents_datatable;	// instance of datatable for manipulation
@@ -140,12 +142,7 @@
     // get the href of the first a under the row of this checkbox, this is the browse url, e.g.
 	$(document).ready(function() {
 		var clickable_message = function ( data, type, full, meta ) {
-
-		<%if(ModeConfig.isDiscoveryMode()){%>
-			return '<a target="_blank" title="' + full[5] + '" href="' + full[4] + '">' + data + '</a>'; // full[4] has the URL, full[5] has the title tooltip
-        <%} else {%>
-			return '<a target="_blank" title="' + full[5] + '" href="' + full[4] + '">' + data + '</a>&nbsp; <a title="<%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "correspondents.entry.edit")%> ' + data + '" onclick="showCorrespondentEntryModificationModel('+ meta.row +');"><img style="height:20px;cursor:pointer;" src="images/edit_correspondent.svg"></a>';
-        <%}%>
+            return '<a target="_blank" title="' + full[5] + '" href="' + full[4] + '">' + data + '</a>'; // full[4] has the URL, full[5] has the title tooltip
 		};
 
 		correspondents_datatable = $('#people').dataTable({
@@ -154,6 +151,8 @@
 			order:[[1, 'desc']], // col 2 (sent message count), descending
 			aLengthMenu: [[ 20, 50, 100, 1000, 5000, -1], [ 20, 50, 100, 1000, 5000, "All"]],
 			iDisplayLength: 20,
+            select: { style: 'multi' },
+			autoWidth: false,
 			columnDefs: [{width: "550px", targets: 0}, { className: "dt-right", "targets": [ 1,2,3 ] },{width: "50%", targets: 0},{targets: 0, render:clickable_message}], /* col 0: click to search, cols 4 and 5 are to be rendered as checkboxes */
 			fnInitComplete: function() { $('#spinner-div').hide(); $('#people').fadeIn(); }
 		});
@@ -212,68 +211,68 @@
         });
     }
 
-	var confirmBeforeSubmit=function(){
+	var confirmBeforeMerge=function(){
 
-		// retrieve the modified correspondent detail from model
-		correspondent_entry = $('#correspondent-entry-modification-modal .modal-body').val().trim();
+        var selectedRows = correspondents_datatable.api().rows( { selected: true } );
+        var selectedRowData = selectedRows.data();
 
-		if (correspondent_entry.includes("\n--\n")){
-			epadd.error("Action aborted because special characters -- is found");
+		if (selectedRowData.length < 2){
+			epadd.error("Please select more than 1 contacts to perform merging");
 			return;
 		}
 
-		if (correspondent_entry!='') {
-			uploadCorrespondentEntry();
-		}else {
-				epadd.info_confirm_continue('Are you sure to remove '+selectedCorrespondent[0]+' from address book?', function () {
-					uploadCorrespondentEntry();
-				});
+        var nameList = "";
+        var list = "";
+        var i;
+        for (i=0; i<selectedRowData.length; i++){
+            var rowID = selectedRowData[i][8];
+            var name = selectedRowData[i][0];
+
+            if (list==""){
+                list += rowID;
+                nameList += name;
+            } else {
+                list += "," + rowID;
+                nameList += ", " + name;
+            }
+        }
+
+		if (list!="") {
+			epadd.info_confirm_continue('Are you sure to merge the contacts (' + nameList + ') in address book?', function () {
+			    mergeCorrespondents(list);
+            });
 		}
 	};
 
-	var uploadCorrespondentEntry=function(){
-	    // retrieve the modified correspondent detail from model
-	    correspondent_entry = $('#correspondent-entry-modification-modal .modal-body').val().trim();
+    var mergeCorrespondents=function(mergeIDs){
 
-		$.ajax({
-            type: 'POST',
-            url: "ajax/uploadCorrespondentEntry.jsp",
-            data: {
-				archiveID: archiveID,
-				row: correspondent_rownum,
-				data: correspondent_entry,
-			},
-            dataType: 'json',
-            success: function (response) {
-                if (response && response.status==0 ) {
-					epadd.success('Correspondent list uploaded and applied.', function () { });
-					// reset the modal content to empty before next call
-					$('#correspondent-entry-modification-modal .modal-body').val('');
+        //alert("mergeCorrespondents: mergeIDs = "+ mergeIDs);
+        if (mergeIDs != "") {
+            $('#spinner-div').show();
+            $.ajax({
+                    type: 'POST',
+                    url: "ajax/mergeCorrespondents.jsp",
+                    data: {
+                        archiveID: archiveID,
+                        mergeIDs: mergeIDs,
+                    },
+                    dataType: 'json',
+                    success: function (response) {
+                        $('#spinner-div').hide();
+                        if (response && response.status==0 ) {
+                            epadd.success('Correspondent merged.', function () {
+                                window.location.reload();
+                            });
+                        } else if (response && response.status == 1){
+                            epadd.error("Error merging correspondents: " + response.error);
+                        } else {
+                            console.log(response.status + ' | '+ response.error );
+                        }
+                    }
+            });
+        }
 
-					// update row with new data in cache
-					selectedCorrespondent[5] = escapeHTML(correspondent_entry);
-
-					// update row with new data in datatable and reload with user paging change
-					if (correspondent_entry == '') {
-						//correspondents_datatable.api().row(correspondent_rownum).remove().draw(false);
-						window.location.reload();
-					} else {
-						correspondents_datatable.api().row(correspondent_rownum).data(selectedCorrespondent).draw(false);
-					}
-
-                } else if (response && response.status == 1){
-					epadd.error("Error uploading correspondent entry info: " + response.error);
-                } else {
-					console.log(response.status + ' | '+ response.error );
-				}
-
-            },
-            error: function (jq, textStatus, errorThrown) {
-                epadd.error("Error uploading correspondent entry info, status = " + textStatus + ' json = ' + jq.responseText + ' errorThrown = ' + errorThrown);
-            }
-        });
     };
-
 </script>
 
 <div style="clear:both"></div>
