@@ -1148,8 +1148,10 @@ public class SearchResult {
     }
     private static SearchResult filterForLabelsAndMultipleRestrictionLabels(SearchResult inputSet){
         Collection<String> neededLabelIDs = JSPHelper.getParams(inputSet.queryParams, "labelIDs"); // this can come in as a single parameter with multiple values (in case of multiple selections by the user)
+
+        // "have" or "have-not" logic indicator, default is set to "have" logic if it is not explicitly set
         String haveOrNotLabels = JSPHelper.getParam(inputSet.queryParams, "haveOrNotLabels");
-        boolean haveIndicator = "have".equals(haveOrNotLabels);     //indicator of "have" or "have-not" logic
+        boolean haveIndicator = (haveOrNotLabels==null)? true : ("have".equals(haveOrNotLabels));
 
         if(Util.nullOrEmpty(neededLabelIDs))
             return filterForMultipleRestrictionLabels(inputSet);
