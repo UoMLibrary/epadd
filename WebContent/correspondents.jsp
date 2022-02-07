@@ -32,6 +32,7 @@
 
 	<script src="js/muse.js"></script>
 	<script src="js/epadd.js"></script>
+    <script type="text/javascript" src="js/statusUpdate.js"></script>
 
 	<style type="text/css">
       .js #people {display: none;}
@@ -244,10 +245,21 @@
 		}
 	};
 
+    var onReadyMergedCorrespondents=function(){
+        epadd.success('Correspondent merged.', function () {
+            window.location.reload();
+        });
+    };
+
     var mergeCorrespondents=function(mergeIDs){
 
         //alert("mergeCorrespondents: mergeIDs = "+ mergeIDs);
         if (mergeIDs != "") {
+            var params = "archiveID=" +  archiveID + "&mergeIDs="+ mergeIDs;
+            try {
+                fetch_page_with_progress ('ajax/async/mergeCorrespondents.jsp', "status", document.getElementById('status'), document.getElementById('status_text'), params, onReadyMergedCorrespondents);
+            } catch (err) {}
+/*
             $('#spinner-div').show();
             $.ajax({
                     type: 'POST',
@@ -270,9 +282,11 @@
                         }
                     }
             });
+*/
         }
 
     };
+
 </script>
 
 <div style="clear:both"></div>
