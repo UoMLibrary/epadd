@@ -850,7 +850,7 @@ public class EmailRenderer {
 		// result.append ("\n" + style + "ID: " + "</td><td>" + messageId + " " + messageLink + "</td></tr>");
 		result.append("</table>\n"); // end docheader table
 
-		if (ModeConfig.isPublicMode())
+		if (ModeConfig.isPublicMode() || ModeConfig.isDeliveryMode())
 			return new StringBuilder(Util.maskEmailDomain(result.toString()));
 
 		return result;
