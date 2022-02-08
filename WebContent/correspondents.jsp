@@ -152,7 +152,9 @@
 			order:[[1, 'desc']], // col 2 (sent message count), descending
 			aLengthMenu: [[ 20, 50, 100, 1000, 5000, -1], [ 20, 50, 100, 1000, 5000, "All"]],
 			iDisplayLength: 20,
-            select: { style: 'multi' },
+			<%if(!ModeConfig.isDiscoveryMode() && !ModeConfig.isDeliveryMode()){%>
+            	select: { style: 'multi' },
+			<%} %>
 			autoWidth: false,
 			columnDefs: [{width: "550px", targets: 0}, { className: "dt-right", "targets": [ 1,2,3 ] },{width: "50%", targets: 0},{targets: 0, render:clickable_message}], /* col 0: click to search, cols 4 and 5 are to be rendered as checkboxes */
 			fnInitComplete: function() { $('#spinner-div').hide(); $('#people').fadeIn(); }
