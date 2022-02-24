@@ -50,9 +50,10 @@
 
 	<div class="search-tips" style="display:block">
 
-		<% if (ModeConfig.isAppraisalMode() || ModeConfig.isProcessingMode()) { %>
-			<%=edu.stanford.muse.util.Messages.getMessage(archiveID,"help","labels.help.appraisal-processing")%>
-
+		<% if (ModeConfig.isAppraisalMode()) { %>
+			<%=edu.stanford.muse.util.Messages.getMessage(archiveID,"help","labels.help.appraisal")%>
+		<% } else if (ModeConfig.isProcessingMode()) { %>
+			<%=edu.stanford.muse.util.Messages.getMessage(archiveID,"help","labels.help.processing")%>
 		<% } else if (ModeConfig.isDeliveryMode()) { %>
 			<%=edu.stanford.muse.util.Messages.getMessage(archiveID,"help","labels.help.delivery")%>
 		<% } %>

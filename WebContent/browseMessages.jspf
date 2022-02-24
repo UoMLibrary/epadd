@@ -31,8 +31,10 @@
 
     <div class="search-tips" style="display:block">
 
-        <% if (ModeConfig.isAppraisalMode() || ModeConfig.isProcessingMode()) { %>
-            <%=edu.stanford.muse.util.Messages.getMessage(archiveID, "help", "browseMessages.help.appraisal-processing")%>
+        <% if (ModeConfig.isAppraisalMode()) { %>
+            <%=edu.stanford.muse.util.Messages.getMessage(archiveID, "help", "browseMessages.help.appraisal")%>
+        <% } else if (ModeConfig.isProcessingMode()) { %>
+        <%=edu.stanford.muse.util.Messages.getMessage(archiveID, "help", "browseMessages.help.processing")%>
         <% } else if (ModeConfig.isDiscoveryMode()) { %>
             <%=edu.stanford.muse.util.Messages.getMessage(archiveID, "help", "browseMessages.help.discovery")%>
         <% } else if (ModeConfig.isDeliveryMode()) { %>
