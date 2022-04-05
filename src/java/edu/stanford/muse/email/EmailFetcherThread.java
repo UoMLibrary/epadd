@@ -19,6 +19,8 @@ import com.sun.mail.imap.IMAPFolder;
 import edu.stanford.muse.Config;
 import edu.stanford.muse.LabelManager.LabelManager;
 import edu.stanford.muse.datacache.Blob;
+import edu.stanford.muse.epaddpremis.EpaddEvent;
+import edu.stanford.muse.epaddpremis.EpaddPremis;
 import edu.stanford.muse.index.*;
 import edu.stanford.muse.util.EmailUtils;
 import edu.stanford.muse.util.JSONUtils;
@@ -1545,6 +1547,7 @@ public class EmailFetcherThread implements Runnable, Serializable {
                             log.error("Exception trying to fetch messages, results will be incomplete! " + e + "\n" + Util.stackTrace(e));
                         }
                     }
+                     archive.getEpaddPremis().createEvent(EpaddEvent.EventType.MBOX_INGEST,  nMessages + " messages", "success", "file name", folder_name());
                     log.info("Fetch stats for this fetcher thread: " + stats);
                 }
                 log.info("Read #" + nMessages + " messages in #" + b + " batches of size: " + BATCH + " in " + (System.currentTimeMillis() - st) + "ms");

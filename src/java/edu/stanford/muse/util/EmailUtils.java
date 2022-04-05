@@ -49,6 +49,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeUtility;
+import javax.xml.bind.JAXBException;
 
 import static edu.stanford.muse.email.EmailFetcherThread.INVALID_DATE;
 

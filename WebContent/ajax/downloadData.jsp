@@ -4,8 +4,10 @@
 <%@ page import="org.json.JSONArray" %><%@ page import="org.json.JSONObject"%><%@ page import="org.json.CDL"%><%@ page import="org.apache.commons.io.FileUtils"%><%@ page import="au.com.bytecode.opencsv.CSVWriter"%><%@ page import="java.util.*"%><%@ page import="edu.stanford.muse.ner.model.NEType"%><%@ page import="edu.stanford.muse.index.*"%><%@ page import="java.io.*"%><%@ page import="java.util.zip.GZIPOutputStream"%><%@ page import="java.util.zip.ZipOutputStream"%><%@ page import="java.util.zip.ZipEntry"%><%@ page import="edu.stanford.muse.util.EmailUtils"%><%@ page import="edu.stanford.muse.webapp.ModeConfig"%><%@ page import="edu.stanford.muse.AddressBookManager.AddressBook"%><%@ page import="edu.stanford.muse.email.StatusProvider"%><%@ page import="com.google.common.collect.Multimap"%><%@ page import="java.util.function.Consumer"%><%@ page import="edu.stanford.epadd.util.OperationInfo"%><%@ page import="edu.stanford.muse.email.StaticStatusProvider"%>
 <%
 
-//This api needs to be supported for both types of flows - long running with status bar and normal (without status bar). Theso two invocation types of this jsp will be identified
-//by the presence of operation ID (opID field) in the request. If it is being invoked as a long running operation then the front end will use fetch_page_progress_bar method to invoke it
+//This api needs to be supported for both types of flows - long running with status bar and normal (without status bar).
+// Theso two invocation types of this jsp will be identified
+//by the presence of operation ID (opID field) in the request.
+// If it is being invoked as a long running operation then the front end will use fetch_page_progress_bar method to invoke it
 //which in turn will provide it with an operation ID.
 
 
@@ -379,7 +381,8 @@ if(entitytype==Short.MAX_VALUE){
         } else {
             resultJSON.put ("status", 0);
             resultJSON.put ("downloadurl", downloadURL);
-            resultJSON.put("resultPage",downloadURL);//because sometime this jsp is invoked as a long running operation (using fetch_page_and_progress api in js) and this is the way to tell where to download the data from.
+            resultJSON.put("resultPage",downloadURL);//because sometime this jsp is invoked as a long running operation (using fetch_page_with_progress api in js)
+            // and this is the way to tell where to download the data from.
             resultJSON.put("responseText","Preparing file for download!");
         }
 //out.println (result.toString(4));

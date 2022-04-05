@@ -349,7 +349,17 @@ Error: Export is only available in processing or appraisal modes!
             }
             var post_params={archiveID:archiveID, data:"to-mbox", type:exportoptions};
             var params = epadd.convertParamsToAmpersandSep(post_params);
-            fetch_page_with_progress("ajax/downloadData.jsp", "status", document.getElementById('status'), document.getElementById('status_text'), params);
+
+            // $.ajax({
+            //     "type": "POST",
+            //     "url": "ajax/premis.jsp",
+            //     "data": {archiveID: archiveID, eventtype: 'mbox export', eventdetailinformation: exportoptions, type : exportoptions},
+            //     "success": function (data) {
+            //         console.log("DONE")
+            //     }
+            // });
+            var premisData = {eventType: "mbox export", eventDetailInformation: exportoptions};
+             fetch_page_with_progress("ajax/downloadData.jsp", "status", document.getElementById('status'), document.getElementById('status_text'), params, null, null, premisData);
             /*
              $.ajax({
              type: 'POST',

@@ -29,6 +29,7 @@ import edu.stanford.muse.AnnotationManager.AnnotationManager;
 import edu.stanford.muse.AddressBookManager.CorrespondentAuthorityMapper;
 import edu.stanford.muse.LabelManager.Label;
 import edu.stanford.muse.LabelManager.LabelManager;
+import edu.stanford.muse.epaddpremis.EpaddPremis;
 import edu.stanford.muse.ie.NameInfo;
 import edu.stanford.muse.ie.variants.EntityBookManager;
 import edu.stanford.muse.ner.NER;
@@ -81,6 +82,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.mail.Header;
+import javax.xml.bind.JAXBException;
 
 /**
  * Core data structure that represents an archive. Conceptually, an archive is a
@@ -116,6 +118,9 @@ public class Archive implements Serializable {
     public static final String LABELMAPDIR= "LabelMapper";
     public static final String BLOBLNORMALIZATIONFILE_SUFFIX="NormalizationInfo.csv";
     public transient  static ResultCache cacheManager = new ResultCache();//making it static so that it becomes visible for all archives.
+
+    // We read the xml text file, so no serialization
+    private transient EpaddPremis epaddPremis;
 
     public Multimap<Document, Tuple2<String,String>> getDupMessageInfo() {
         if(dupMessageInfo==null)
@@ -580,7 +585,20 @@ int errortype=0;
     private static Archive createArchive(String title) {
         Archive archive = new Archive();
         archive.archiveTitle = title;
+       // archive.epaddPremis.createEvent(EpaddEvent.EventType.MBOX_EXPORT);
+//        try {
+//            archive.epaddPremis.printToFile();
+//        }
+//        catch (Exception e)
+//        {
+//
+//        }
         return archive;
+    }
+
+    public EpaddPremis getEpaddPremis()
+    {
+        return epaddPremis;
     }
 
     public synchronized void openForRead() {
@@ -627,6 +645,11 @@ int errortype=0;
      * @param args - options for loading @see{edu.stanford.muse.webapp.JSPHelper.preparedArchive}, set to nul to empty array for defaults
      * */
     public void setup(String baseDir, BlobStore blobStore, String args[]) throws IOException {
+        try {
+            epaddPremis = new EpaddPremis(baseDir + File.separatorChar + Archive.BAG_DATA_FOLDER + File.separatorChar + "epaddPremis.xml");
+        } catch (JAXBException e) {
+            Util.print_exception("Exception creating new EpaddPremis object", e, LogManager.getLogger(EpaddPremis.class));
+        }
         prepareBaseDir(baseDir);
         indexOptions = new IndexOptions();
         indexOptions.parseArgs(args);
@@ -1703,6 +1726,7 @@ after maskEmailDomain.
 
     public void postDeserialized(String baseDir, boolean readOnly) throws IOException {
 
+        epaddPremis = EpaddPremis.createFromFile(baseDir + File.separatorChar + Archive.BAG_DATA_FOLDER + File.separatorChar + "epaddPremis.xml");
         log.info(indexer.computeStats());
 
         indexer.setBaseDir(baseDir+File.separatorChar + Archive.BAG_DATA_FOLDER+ File.separatorChar);
