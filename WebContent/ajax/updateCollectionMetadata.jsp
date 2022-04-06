@@ -99,6 +99,29 @@ try {
 	cm.catalogRecordLink = request.getParameter("catalogRecordLink");
 	cm.about = request.getParameter("about");
 
+    cm.archivalHistory = request.getParameter("archivalHistory");
+    cm.description = request.getParameter("description");
+    cm.access = request.getParameter("access");
+    cm.embargoReviewDate = request.getParameter("embargoReviewDate");
+    cm.embargoStartDate = request.getParameter("embargoStartDate");
+    cm.embargoDuration = request.getParameter("embargoDuration");
+    cm.embargoEndDate = request.getParameter("embargoEndDate");
+    cm.sensitivityReview = request.getParameter("sensitivityReview");
+    cm.processingNote = request.getParameter("processingNote");
+
+    cm.preservationLevelRole = request.getParameter("preservationLevelRole");
+    cm.preservationLevelRationale = request.getParameter("preservationLevelRationale");
+    cm.environmentCharacteristic = request.getParameter("environmentCharacteristic");
+    cm.environmentPurpose = request.getParameter("environmentPurpose");
+    cm.environmentNote = request.getParameter("environmentNote");
+    cm.softwareName = request.getParameter("softwareName");
+    cm.softwareVersion = request.getParameter("softwareVersion");
+    cm.rightsStatementIdentifierType = request.getParameter("rightsStatementIdentifierType");
+    cm.statuteJurisdiction = request.getParameter("statuteJurisdiction");
+    cm.statuteDocumentationIdentifierType = request.getParameter("statuteDocumentationIdentifierType");
+    cm.statuteDocumentationIdentifierValue = request.getParameter("statuteDocumentationIdentifierValue");
+    cm.statuteDocumentationRole = request.getParameter("statuteDocumentationRole");
+
 /*
 	saveFile (request, "collectionImage", archive.baseDir + File.separator + Archive.IMAGES_SUBDIR + File.separator + "landingPhoto.png");
 	saveFile (request, "bannerImage", archive.baseDir + File.separator + Archive.IMAGES_SUBDIR + File.separator + "bannerImage.png");

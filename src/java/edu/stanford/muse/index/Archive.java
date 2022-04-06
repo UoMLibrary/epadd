@@ -461,6 +461,20 @@ int errortype=0;
     static public class AccessionMetadata implements java.io.Serializable {
         private final static long serialVersionUID = 1L; // compatibility
         public String id, title, date, scope, rights, notes;
+        public List<FileMetadata> fileMetadatas;
+    }
+
+    // We define new serializable object for epadd+ project file metadata requirement.
+    // It may be part of collection directly (if no accession) or part of an accession.
+    static public class FileMetadata implements java.io.Serializable {
+        private final static long serialVersionUID = 1L; // compatibility
+        public String fileID, filename, fileFormat, notes;
+        public String preservationLevelRole, preservationLevelRationale, preservationLevelDateAssigned, compositionLevel;
+        public String messageDigestAlgorithm, messageDigest, messageDigestOrginator;
+        public String formatName, formatVersion;
+        public String creatingApplicationName, creatingApplicationVersion, dateCreatedByApplication;
+        public String environmentCharacteristic, environmentPurpose, environmentNote;
+        public String softwareName, softwareVersion;
 
     }
 
@@ -485,8 +499,18 @@ int errortype=0;
         //Following two fields have been set as transient to avoid their serialization and deserialization by Gson library.
         transient public Date firstDate, lastDate;
         public List<AccessionMetadata> accessionMetadatas;
+        public List<FileMetadata> fileMetadatas;
         public int renamedFiles=0;//to record number of files that were renamed /cleanedup as a result of Amatica integration
         public int normalizedFiles=0;//to record number of files that were normalized (format change) as a result of Amatica integration.
+        //Following fields have been defined for ePADD+ metadata
+        public String archivalHistory, description, access;
+        public String embargoReviewDate, embargoStartDate, embargoDuration, embargoEndDate;
+        public String sensitivityReview, processingNote;
+        public String preservationLevelRole, preservationLevelRationale;
+        public String environmentCharacteristic, environmentPurpose, environmentNote;
+        public String softwareName, softwareVersion;
+        public String rightsStatementIdentifierType;
+        public String statuteJurisdiction, statuteDocumentationIdentifierType, statuteDocumentationIdentifierValue, statuteDocumentationRole;
 
         public String getIngestionLocaleTag(){
             if(!Util.nullOrEmpty(ingestionLocaleTag))

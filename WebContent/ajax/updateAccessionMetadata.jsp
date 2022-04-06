@@ -11,14 +11,14 @@
 	JSONObject result = new JSONObject();
 	if (!ModeConfig.isProcessingMode()) {
 		result.put ("status", 1);
-		result.put ("errorMessage", "Updating collection metadata is allowed only in ePADD's Processing mode.");
+		result.put ("errorMessage", "Updating accession metadata is allowed only in ePADD's Processing mode.");
 		out.println (result.toString(4));
 		return;
 	}
 
-	String errorMessage="";
-	int errorCode=0;
-	Archive.AccessionMetadata ametadata=null;
+	String errorMessage = "";
+	int errorCode = 0;
+	Archive.AccessionMetadata ametadata = null;
 	String archiveBaseDir = Config.REPO_DIR_PROCESSING + File.separator + request.getParameter ("collection");
     String accessionID = request.getParameter("accessionID");
 try {
@@ -51,7 +51,7 @@ try {
 	        return;
 	       }
 
-	    //ametadata.id=request.getParameter("accessionID");//notneeded because it is not allowed to change (for now)
+    //ametadata.id=request.getParameter("accessionID");//notneeded because it is not allowed to change (for now)
 	ametadata.notes = request.getParameter("accessionNotes");
 	ametadata.rights = request.getParameter("accessionRights");
 	//ametadata.date = request.getParameter("accessionDate");
