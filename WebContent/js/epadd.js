@@ -300,6 +300,34 @@ epadd.submitFolders = function()
 {
 	var STORE_FOLDER_SEPARATOR = "^-^"; // this is just an arbitrary string that should not occur in the name of a store or folder
 	// throws an exception if at least one folder is not selected
+
+	function launchBrowseTop(){
+		window.location = './browse-top';
+	}
+	//As existing getSelectFolder is not sufficient to use, here create another getSelectedFolder function for exportable assets
+	function getSelectedExportableAssetsFileParams() {
+		var checked = $('input.folder:checked');
+		var urlParams = "";
+		var store="";
+
+		for (var i=0; i < checked.length; i++)
+		{
+			store = checked[i].getAttribute("STORE");
+			urlParams += encodeURIComponent(store) + '^-^';
+		}
+		urlParams = "exportableAssetsFiles="+urlParams;
+
+		return urlParams;
+	}
+	function setExportableAssets(){
+		var post_params = getSelectedExportableAssetsFileParams() + '&exportableAssets=AppraisalAcquisitioned';
+		var page = "ajax/async/setExportableAssets.jsp";
+
+		try {
+			fetch_page_with_progress(page, "status", document.getElementById('status'), document.getElementById('status_text'), post_params, launchBrowseTop);
+		} catch(err) { }
+	}
+
 	function getSelectedFolderParams() {
 	    var checked = $('input.folder:checked');
 	    var urlParams = "";
@@ -328,7 +356,7 @@ epadd.submitFolders = function()
 		var post_params = getSelectedFolderParams() + '&period=Monthly&downloadAttachments=true';
 		// need to check muse.mode here for page to redirect to actually!
 		var page = "ajax/async/doFetchAndIndex.jsp";
-		fetch_page_with_progress(page, "status", document.getElementById('status'), document.getElementById('status_text'), post_params);
+		fetch_page_with_progress(page, "status", document.getElementById('status'), document.getElementById('status_text'), post_params, setExportableAssets);
 	} catch(err) { }
 };
 

@@ -35,6 +35,7 @@ import edu.stanford.muse.ner.NER;
 import edu.stanford.muse.ner.model.NEType;
 import edu.stanford.muse.util.*;
 import edu.stanford.muse.webapp.EmailRenderer;
+import edu.stanford.muse.webapp.JSPHelper;
 import edu.stanford.muse.webapp.ModeConfig;
 /*
 import gov.loc.repository.bagit.creator.BagCreator;
@@ -108,6 +109,12 @@ public class Archive implements Serializable {
     public static final String LEXICONS_SUBDIR = "lexicons";
     private static final String FEATURES_SUBDIR = "mixtures";
     public static final String IMAGES_SUBDIR = "images";
+    public static final String EXPORTABLE_ASSETS_SUBDIR = "exportableAssets";
+    public static final String EXPORTABLE_ASSETS_APPRAISAL_CANONICAL_ACQUISITIONED_SUBDIR = "AppraisalCanonicalAcquisitioned";
+    public static final String EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_ACQUISITIONED_SUBDIR = "AppraisalNormalizedAcquisitioned";
+    public static final String EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR = "AppraisalNormalizedAppraised";
+    public static final String EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_SUBDIR = "ProcessingNormalized";
+    public static final String EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_PROCESSED_SUBDIR = "ProcessingNormalizedProcessed";
     public static final String ADDRESSBOOK_SUFFIX = "AddressBook";
     public static final String ENTITYBOOKMANAGER_SUFFIX = "EntityBooks";
     public static final String ENTITYBOOK_SUFFIX = "EntityBook";
@@ -137,6 +144,7 @@ public class Archive implements Serializable {
 
 
     public enum Export_Mode {EXPORT_APPRAISAL_TO_PROCESSING,EXPORT_PROCESSING_TO_DELIVERY,EXPORT_PROCESSING_TO_DISCOVERY}
+    public static enum Exportable_Assets {EXPORTABLE_APPRAISAL_CANONICAL_ACQUISITIONED, EXPORTABLE_APPRAISAL_NORMALIZED_ACQUISITIONED, EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED, EXPORTABLE_PROCESSING_NORMALIZED, EXPORTABLE_PROCESSING_NORMALIZED_PROCESSED}
     public static String[] LEXICONS =  new String[]{
                                                     "default.english.lex.txt","Persona.academic.administrator.sensitive.duke.english.lex.txt",
                                                     "Persona.author.princeton.english.lex.txt","Persona.composer.NYPL.english.lex.txt",
@@ -375,6 +383,7 @@ int errortype=0;
     public String baseDir;
     public File lexiconsDir;
     public File computeDir;
+    public File exportableAssetsDir;
 
     public SentimentStats stats = new SentimentStats();
 
@@ -713,6 +722,11 @@ int errortype=0;
      * This should be the only place that creates the cache dir.
      */
     private void prepareBaseDir(String dir) {
+        prepareLexiconsDir(dir);
+        prepareExportableAssetsDir(dir);
+    }
+
+    private void prepareLexiconsDir(String dir) {
         dir = dir + File.separatorChar + Archive.BAG_DATA_FOLDER + File.separatorChar+ LEXICONS_SUBDIR;
         lexiconsDir = new File(dir);
         lexiconsDir.mkdirs();
@@ -744,6 +758,12 @@ int errortype=0;
                 Util.print_exception(e, log);
             }
         }
+    }
+
+    private void prepareExportableAssetsDir(String dir) {
+        dir = dir + File.separatorChar + Archive.BAG_DATA_FOLDER + File.separatorChar + Archive.EXPORTABLE_ASSETS_SUBDIR;
+        exportableAssetsDir = new File(dir);
+        exportableAssetsDir.mkdirs();
     }
 
     /** adds alternateEmailAddrs if specified in the request to the session. alternateEmailAddrs are simply appended to. */
@@ -2416,6 +2436,125 @@ after maskEmailDomain.
 
     }
 
+/*
+    public void generateExportableAssetsNormalizedMbox(String targetExportableAssetsFolder){
+        // identify total ingested email sthores
+        Collection<EmailDocument> docs = (Collection) getAllDocs();
+        ArrayList<String> folders = new ArrayList<String>();
+
+        for (EmailDocument ed: docs) {
+            String folder = ed.folderName;
+            if (!folders.contains(folder))
+                folders.add(folder);
+        }
+
+        String thisEmailFolder;
+        SearchResult ASearchResult;
+
+        MultiMap<String, String> params = LinkedHashMultimap.create();
+
+        // for each store, filter out the emailDocument set
+        for (int i=0; i<folders.size(); i++){
+            thisEmailFolder = folders.get(0);
+
+            // prepare SearchResult object
+            params = LinkedHashMultimap.create();
+
+            try {
+                params.put("folder", JSPHelper.convertRequestParamToUTF8(thisEmailFolder));
+            } catch (IOException ioe){}
+
+            ASearchResult = new SearchResult(this, params);
+
+            Pair<Collection<Document>, SearchResult> result = SearchResult.selectDocsAndBlobs(ASearchResult);
+
+            // call printToMBOX to target exportable assets sub-directory
+            String pathToFile = targetExportableAssetsFolder + Util.filePathTail(thisEmailFolder);
+
+            PrintWriter pw = null;
+            try {
+                pw = new PrintWriter(pathToFile, "UTF-8");
+
+                for (Document ed: result.first)
+                    EmailUtils.printToMbox(this, (EmailDocument) ed, pw, getBlobStore(), true);
+
+                pw.close();
+
+            } catch(Exception e){
+                e.printStackTrace();
+            }
+
+        }
+
+    }
+*/
+    public void setExportableAssets(Archive.Exportable_Assets exportableAssets){
+        setExportableAssets(exportableAssets, "MBOX", false, true, null);
+    }
+
+    public void setExportableAssets(Archive.Exportable_Assets exportableAssets, ArrayList<String> sourceAssetsFolders){
+        setExportableAssets(exportableAssets, "MBOX", false, true, sourceAssetsFolders);
+    }
+
+    public void setExportableAssets(Archive.Exportable_Assets exportableAssets, String normalizedFormat, boolean includeRestricted, boolean includeDuplicated, ArrayList<String> sourceAssetsFolders){
+        String targetExportableAssetsFolder = exportableAssetsDir.getPath() + File.separatorChar;
+        String targetExportableAssetsFilename;
+
+        switch (exportableAssets) {
+            case EXPORTABLE_APPRAISAL_CANONICAL_ACQUISITIONED:
+                targetExportableAssetsFolder = targetExportableAssetsFolder + EXPORTABLE_ASSETS_APPRAISAL_CANONICAL_ACQUISITIONED_SUBDIR;
+                new File(targetExportableAssetsFolder).mkdir();
+
+                try {
+                    for (String sourceAssetFolder : sourceAssetsFolders) {
+                        targetExportableAssetsFilename = Util.filePathTail(sourceAssetFolder);
+                        Util.copy_file(sourceAssetFolder, targetExportableAssetsFolder + File.separatorChar + targetExportableAssetsFilename);
+                    }
+                } catch (IOException ioe) {}
+
+                break;
+
+            case EXPORTABLE_APPRAISAL_NORMALIZED_ACQUISITIONED:
+                targetExportableAssetsFolder = targetExportableAssetsFolder + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_ACQUISITIONED_SUBDIR;
+                new File(targetExportableAssetsFolder).mkdir();
+
+                try {
+                    for (String sourceAssetFolder : sourceAssetsFolders) {
+                        targetExportableAssetsFilename = Util.filePathTail(sourceAssetFolder);
+                        Util.copy_file(sourceAssetFolder, targetExportableAssetsFolder + File.separatorChar + targetExportableAssetsFilename);
+                    }
+                } catch (IOException ioe) {}
+
+                break;
+
+            case EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED:
+                targetExportableAssetsFolder = targetExportableAssetsFolder + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
+
+                // generate normalized MBOX email store
+                //generateExportableAssetsNormalizedMbox(targetExportableAssetsFolder);
+                break;
+
+            case EXPORTABLE_PROCESSING_NORMALIZED:
+                String sourceExportableAssetFolder = targetExportableAssetsFolder + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
+                targetExportableAssetsFolder = targetExportableAssetsFolder + EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_SUBDIR;
+                new File(targetExportableAssetsFolder).mkdir();
+                try {
+                    Util.copy_directory(sourceExportableAssetFolder, targetExportableAssetsFolder);
+                } catch (IOException ioe){}
+
+                break;
+
+            case EXPORTABLE_PROCESSING_NORMALIZED_PROCESSED:
+                targetExportableAssetsFolder = targetExportableAssetsFolder + EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_PROCESSED_SUBDIR;
+                new File(targetExportableAssetsFolder).mkdir();
+
+                // generate normalized MBOX email store
+                //generateExportableAssetsNormalizedMbox(targetExportableAssetsFolder);
+                break;
+        }
+
+        updateFileInBag(targetExportableAssetsFolder, baseDir);
+    }
 
     /*public JSONArray getEntitiesCountAsJSON(Short entityType,int maxrecords){
 
