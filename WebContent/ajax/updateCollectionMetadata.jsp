@@ -63,14 +63,24 @@ private void saveFile(HttpServletRequest request, String param, String filePath)
 %>
 <%
 	JSONObject result = new JSONObject();
+
+    // This restriction is not available now. User is allowed to prepare metadatas in Appriasal module
+	/*
 	if (!ModeConfig.isProcessingMode()) {
 		result.put ("status", 1);
 		result.put ("errorMessage", "Updating collection metadata is allowed only in ePADD's Processing mode.");
 		out.println (result.toString(4));
 		return;
 	}
+    */
 
-	String archiveBaseDir = Config.REPO_DIR_PROCESSING + File.separator + request.getParameter ("collection");
+	//String archiveBaseDir = Config.REPO_DIR_PROCESSING + File.separator + request.getParameter ("collection");
+    String archiveBaseDir;
+    if (ModeConfig.isAppraisalMode()) {
+        archiveBaseDir =  Config.REPO_DIR_APPRAISAL + File.separator + "user";
+    } else {
+        archiveBaseDir = Config.REPO_DIR_PROCESSING + File.separator + request.getParameter ("collection");
+    }
 
 try {
 

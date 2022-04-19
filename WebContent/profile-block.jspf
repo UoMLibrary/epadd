@@ -164,8 +164,11 @@
                     <%}%>
                 </p>
                 <br/>
-                <% } %>
-
+                <% } else if (ModeConfig.isAppraisalMode()) { %>
+                    <hr/>
+                        Metadata:
+                        <a href="edit-metadata?collection=user" style="cursor:pointer;margin-left:75px;"><img style="height:25px" src="images/edit_summary.svg"/></a>
+                <%}%>
             </div>
             <div class="modal-footer">
                 <button type="button" class="ok-button btn btn-default" data-dismiss="modal"><%=edu.stanford.muse.util.Messages.getMessage(archiveID,"messages","profile-block.close")%></button>

@@ -69,15 +69,24 @@
 
 	// Currently, we assume there should be one and only one targeted collection to navigate from.
 	// If there is no defined, just return
-	if (collectionFolder ==null)
-		return;
+
+	// This restriction is not available now. User is allowed to prepare metadatas in Appriasal module, too, when any collection is yet created
+	//if (collectionFolder ==null)
+	//	return;
 
 %>
 
 <script>epadd.nav_mark_active('Collections');</script>
 <p>
-
+<%
+	if (ModeConfig.isAppraisalMode()) {
+%>
+<div style="text-align: left; margin:auto; width: 1100px; position: relative;"> Appraisal  &nbsp;&nbsp;&nbsp;&nbsp;| &nbsp;&nbsp;&nbsp;&nbsp; Edit Metadata</div>
+<%
+	} else {
+%>
 <div style="text-align: left; margin:auto; width: 1100px; position: relative;"> Processing  &nbsp;&nbsp;&nbsp;&nbsp;| &nbsp;&nbsp;&nbsp;&nbsp; <a href="collection-detail?collection=<%=collectionFolder%>">About this Collection</a> &nbsp;&nbsp;&nbsp;&nbsp;| &nbsp;&nbsp;&nbsp;&nbsp; Edit Metadata</div>
+	<% } %>
 <br/>
 <div style="text-align: left; margin:auto; width: 1100px; position: relative;">
 
