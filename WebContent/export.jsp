@@ -180,18 +180,17 @@ Error: Export is only available in processing or appraisal modes!
                     <div class="form-group col-sm-8">
                         <select id="export-preservation-options" name="export-preservation-options" class="form-control selectpicker">
                             <option value="" selected disabled><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.select")%></option>
-                            <option value = "exportAppraised">exportAppraised</option>
-                            <option value = "exportProcessing">exportProcessing</option>
-                            <option value = "exportAccessionProcessing">exportAccessionProcessing</option>
-                            <option value = "exportProcessed">exportProcessed</option>
+                            <% if (ModeConfig.isAppraisalMode()) { %>
+                                <option value = "exportAppraised">exportAppraised</option>
+                            <% } else if (ModeConfig.isProcessingMode()) {
+                                <option value = "exportProcessed">exportProcessed</option>
+                            <% } %>
                         </select>
                     </div>
                     <div class="form-group col-sm-4">
                         <button id="export-mbox-do" class="go-button  btn-default"><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.export-button")%></button>
                     </div>
                 </div>
-
-
                 <br/>
             </div>
         </section>

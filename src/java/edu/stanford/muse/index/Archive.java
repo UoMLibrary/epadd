@@ -70,6 +70,7 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.*;
 
@@ -2438,8 +2439,12 @@ after maskEmailDomain.
 
     }
 
-    public void generateExportableAssetsNormalizedMbox(String targetExportableAssetsFolder, String normalizedFormat, boolean includeRestricted, boolean includeDuplicated){
-        // identify total ingested email sthores
+    public JSONObject generateExportableAssetsNormalizedMbox(String targetExportableAssetsFolder, String normalizedFormat, boolean includeRestricted, boolean includeDuplicated){
+        JSONObject result = new JSONObject();
+        String returnCode = "0";
+        String returnMessage = "";
+
+        // identify total ingested email stores
         Collection<EmailDocument> docs = (Collection) getAllDocs();
         ArrayList<String> folders = new ArrayList<String>();
 
@@ -2464,11 +2469,14 @@ after maskEmailDomain.
 
             try {
                 params.put("folder", JSPHelper.convertRequestParamToUTF8(aSourceFolder));
-            } catch (IOException ioe){}
+            } catch (UnsupportedEncodingException uee){
+                returnCode = "1";
+                returnMessage = "Unexpect error is found" + uee.toString();
+            }
 
             ASearchResult = new SearchResult(this, params);
 
-            Pair<Collection<Document>, SearchResult> result = SearchResult.selectDocsAndBlobs(ASearchResult);
+            Pair<Collection<Document>, SearchResult> searchResult = SearchResult.selectDocsAndBlobs(ASearchResult);
 
             if ("MBOX".equals(normalizedFormat)) {
                 // MBOX files would be reproduced with the same filenames of imported raw files
@@ -2478,7 +2486,7 @@ after maskEmailDomain.
                 try {
                     pw = new PrintWriter(pathToFile, "UTF-8");
 
-                    for (Document d : result.first) {
+                    for (Document d : searchResult.first) {
                         EmailDocument ed = (EmailDocument) d;
                         if (includeRestricted || !getLabelIDs(ed).contains(LabelManager.LABELID_DNT))
                             EmailUtils.printToMbox(this, (EmailDocument) ed, pw, getBlobStore(), true);
@@ -2520,27 +2528,35 @@ after maskEmailDomain.
 
                 } catch (Exception e) {
                     e.printStackTrace();
+                    returnCode = "1";
+                    returnMessage = "Unexpect error is found" + e.toString();
                 }
-            } // endif MBOX export
-            /*
-            else {
+            } else {
                 //TODO: more codings are required here to support non-MBOX normalization formats.
-
+                returnCode = "1";
+                returnMessage = "Unsupported normalization format: " + normalizedFormat;
             }
-             */
+
         }
+        result.put ("status", returnCode);
+        result.put ("errorMessage", returnMessage);
 
+        return result;
     }
 
-    public void setExportableAssets(Archive.Exportable_Assets exportableAssets){
-        setExportableAssets(exportableAssets, "MBOX", false, true, null);
+    public JSONObject setExportableAssets(Archive.Exportable_Assets exportableAssets){
+        return setExportableAssets(exportableAssets, "MBOX", false, true, null);
     }
 
-    public void setExportableAssets(Archive.Exportable_Assets exportableAssets, ArrayList<String> sourceAssetsFolders){
-        setExportableAssets(exportableAssets, "MBOX", false, true, sourceAssetsFolders);
+    public JSONObject setExportableAssets(Archive.Exportable_Assets exportableAssets, ArrayList<String> sourceAssetsFolders){
+        return setExportableAssets(exportableAssets, "MBOX", false, true, sourceAssetsFolders);
     }
 
-    public void setExportableAssets(Archive.Exportable_Assets exportableAssets, String normalizedFormat, boolean includeRestricted, boolean includeDuplicated, ArrayList<String> sourceAssetsFolders){
+    public JSONObject setExportableAssets(Archive.Exportable_Assets exportableAssets, String normalizedFormat, boolean includeRestricted, boolean includeDuplicated, ArrayList<String> sourceAssetsFolders){
+        JSONObject result = new JSONObject();
+        String returnCode = "0";
+        String returnMessage = "";
+
         String targetExportableAssetsFolder;
         if (exportableAssets == EXPORTABLE_APPRAISAL_CANONICAL_ACQUISITIONED || exportableAssets == EXPORTABLE_APPRAISAL_NORMALIZED_ACQUISITIONED || exportableAssets == EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED)
             targetExportableAssetsFolder = exportableAssetsDir.getPath() + File.separatorChar;
@@ -2559,7 +2575,10 @@ after maskEmailDomain.
                         targetExportableAssetsFilename = Util.filePathTail(sourceAssetFolder);
                         Util.copy_file(sourceAssetFolder, targetExportableAssetsFolder + File.separatorChar + targetExportableAssetsFilename);
                     }
-                } catch (IOException ioe) {}
+                } catch (IOException ioe) {
+                    returnCode = "4";
+                    returnMessage = "EXPORTABLE_APPRAISAL_CANONICAL_ACQUISITIONED: Unexpected error is found during copying files";
+                }
 
                 break;
 
@@ -2572,28 +2591,51 @@ after maskEmailDomain.
                         targetExportableAssetsFilename = Util.filePathTail(sourceAssetFolder);
                         Util.copy_file(sourceAssetFolder, targetExportableAssetsFolder + File.separatorChar + targetExportableAssetsFilename);
                     }
-                } catch (IOException ioe) {}
+                } catch (IOException ioe) {
+                    returnCode = "4";
+                    returnMessage = "EXPORTABLE_APPRAISAL_NORMALIZED_ACQUISITIONED: Unexpected error is found during copying files";
+                }
 
                 break;
 
             case EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED:
-                //targetExportableAssetsFolder = targetExportableAssetsFolder + "user/data/exportableAssets/" + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
-                targetExportableAssetsFolder = targetExportableAssetsFolder + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
-                new File(targetExportableAssetsFolder).mkdir();
+                // Existence of normalized acquisition MBOX is mandatory for creating normalized appraised
+                final Path normalizedAcquisitionFile = new File(targetExportableAssetsFolder + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_ACQUISITIONED_SUBDIR).toPath();
 
-                // generate normalized MBOX email store
-                generateExportableAssetsNormalizedMbox(targetExportableAssetsFolder, normalizedFormat, includeRestricted, includeDuplicated);
+                if (Files.isDirectory(normalizedAcquisitionFile)){
+                    // Continue only when normalized acquisition MBOX exists
+
+                    targetExportableAssetsFolder = targetExportableAssetsFolder + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
+                    new File(targetExportableAssetsFolder).mkdir();
+
+                    // generate normalized MBOX email store
+                    generateExportableAssetsNormalizedMbox(targetExportableAssetsFolder, normalizedFormat, includeRestricted, includeDuplicated);
+                } else {
+                    returnCode = "1";
+                    returnMessage = "No Appraisal normalized asset folder / files";
+                }
                 break;
 
             case EXPORTABLE_PROCESSING_NORMALIZED:
                 String sourceExportableAssetFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
                 targetExportableAssetsFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_SUBDIR;
-                System.out.println("source: "+ sourceExportableAssetFolder);
-                System.out.println("destination: "+ targetExportableAssetsFolder);
-                new File(targetExportableAssetsFolder).mkdir();
-                try {
-                    Util.copy_directory(sourceExportableAssetFolder, targetExportableAssetsFolder);
-                } catch (IOException ioe){}
+
+                final Path normalizedProcessingFile = new File(targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR).toPath();
+                if (Files.isDirectory(normalizedProcessingFile)){
+                    //System.out.println("source: "+ sourceExportableAssetFolder);
+                    //System.out.println("destination: "+ targetExportableAssetsFolder);
+
+                    new File(targetExportableAssetsFolder).mkdir();
+                    try {
+                        Util.copy_directory(sourceExportableAssetFolder, targetExportableAssetsFolder);
+                    } catch (IOException ioe){
+                        returnCode = "4";
+                        returnMessage = "EXPORTABLE_PROCESSING_NORMALIZED: Unexpected error is found during copying files";
+                    }
+                } else {
+                    returnCode = "2";
+                    returnMessage = "No Appraisal appraised folder / file";
+                }
 
                 break;
 
@@ -2608,6 +2650,11 @@ after maskEmailDomain.
         }
 
         //updateFileInBag(targetExportableAssetsFolder, baseDir);
+
+        result.put ("status", returnCode);
+        result.put ("errorMessage", returnMessage);
+
+        return result;
     }
 
     /*public JSONArray getEntitiesCountAsJSON(Short entityType,int maxrecords){
