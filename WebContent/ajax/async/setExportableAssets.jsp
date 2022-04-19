@@ -89,13 +89,15 @@ public void setExportableAssets(Multimap<String,String> params, Consumer<StatusP
         assetFiles = new ArrayList(Arrays.asList(exportableAssetsFiles.split("\\^-\\^")));
     }
 
-     if ( "AppraisalAcquisitioned".equals(exportableAssets)){
-        System.out.println("exportableAssets = AppraisalAcquisitioned");
+     if ( "exportAcquisitioned".equals(exportableAssets)){
+        System.out.println("exportableAssets = exportAcquisitioned");
         archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_CANONICAL_ACQUISITIONED, assetFiles);
         archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_ACQUISITIONED, assetFiles);
      } else if ("exportAppraised".equals(exportableAssets)){
         System.out.println("exportableAssets = exportAppraised");
-        archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED);
+        //archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED);
+        //public void setExportableAssets(Archive.Exportable_Assets exportableAssets, String normalizedFormat, boolean includeRestricted, boolean includeDuplicated, ArrayList<String> sourceAssetsFolders){
+        archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED, "MBOX", false, true, null);
      } else if ("exportProcessing".equals(exportableAssets)){
          System.out.println("exportableAssets = exportProcessing");
          archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_PROCESSING_NORMALIZED);

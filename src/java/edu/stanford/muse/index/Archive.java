@@ -83,6 +83,8 @@ import java.util.stream.Collectors;
 
 import javax.mail.Header;
 
+import static edu.stanford.muse.index.Archive.Exportable_Assets.*;
+
 /**
  * Core data structure that represents an archive. Conceptually, an archive is a
  * collection of indexed messages (which can be incrementally updated), along
@@ -2436,8 +2438,7 @@ after maskEmailDomain.
 
     }
 
-/*
-    public void generateExportableAssetsNormalizedMbox(String targetExportableAssetsFolder){
+    public void generateExportableAssetsNormalizedMbox(String targetExportableAssetsFolder, String normalizedFormat, boolean includeRestricted, boolean includeDuplicated){
         // identify total ingested email sthores
         Collection<EmailDocument> docs = (Collection) getAllDocs();
         ArrayList<String> folders = new ArrayList<String>();
@@ -2448,46 +2449,89 @@ after maskEmailDomain.
                 folders.add(folder);
         }
 
-        String thisEmailFolder;
+        String aSourceFolder;
         SearchResult ASearchResult;
 
-        MultiMap<String, String> params = LinkedHashMultimap.create();
+        Multimap<String, String> params = LinkedHashMultimap.create();
 
         // for each store, filter out the emailDocument set
         for (int i=0; i<folders.size(); i++){
-            thisEmailFolder = folders.get(0);
+            aSourceFolder = folders.get(i);
+            System.out.println("generateExportableAssetsNormalizedMbox: This email folder = "+ aSourceFolder);
 
             // prepare SearchResult object
             params = LinkedHashMultimap.create();
 
             try {
-                params.put("folder", JSPHelper.convertRequestParamToUTF8(thisEmailFolder));
+                params.put("folder", JSPHelper.convertRequestParamToUTF8(aSourceFolder));
             } catch (IOException ioe){}
 
             ASearchResult = new SearchResult(this, params);
 
             Pair<Collection<Document>, SearchResult> result = SearchResult.selectDocsAndBlobs(ASearchResult);
 
-            // call printToMBOX to target exportable assets sub-directory
-            String pathToFile = targetExportableAssetsFolder + Util.filePathTail(thisEmailFolder);
+            if ("MBOX".equals(normalizedFormat)) {
+                // MBOX files would be reproduced with the same filenames of imported raw files
+                String pathToFile = targetExportableAssetsFolder + File.separatorChar + Util.filePathTail(aSourceFolder);
 
-            PrintWriter pw = null;
-            try {
-                pw = new PrintWriter(pathToFile, "UTF-8");
+                PrintWriter pw = null;
+                try {
+                    pw = new PrintWriter(pathToFile, "UTF-8");
 
-                for (Document ed: result.first)
-                    EmailUtils.printToMbox(this, (EmailDocument) ed, pw, getBlobStore(), true);
+                    for (Document d : result.first) {
+                        EmailDocument ed = (EmailDocument) d;
+                        if (includeRestricted || !getLabelIDs(ed).contains(LabelManager.LABELID_DNT))
+                            EmailUtils.printToMbox(this, (EmailDocument) ed, pw, getBlobStore(), true);
 
-                pw.close();
+                    }
 
-            } catch(Exception e){
-                e.printStackTrace();
+                    //if (includeDuplicated){
+                        /*
+                        Consumer<Map.Entry<Document,Tuple2<String, String>>> consumer = entry -> {
+                            EmailDocument ed = (EmailDocument) entry.getKey();
+
+                            String dupSourceFolder = (String) ((Tuple2)entry.getValue()).getFirst();
+                            System.out.println("DupSource Folder is "+ dupSourceFolder);
+
+                            if (aSourceFolder.equals(dupSourceFolder)){
+                                System.out.println("generateExportableAssetsNormalizedMbox: Deduplicate for this email document: "+ ed.getUniqueId());
+                                EmailUtils.printToMbox(this, (EmailDocument) ed, pw, getBlobStore(), true);
+                            }
+                        };
+                        getDupMessageInfo().asMap().forEach(consumer);
+                        */
+                        /*
+                        int numofduplicates =  getDupMessageInfo().get(ed).size();//number of duplicates found for this emaildocument
+                        //get the size of attachments
+                        System.out.println("" + numofduplicates + " duplicated message is found on this message");
+
+                        for (Tuple2 s :  getDupMessageInfo().get(ed)) {
+                            System.out.println("this mbox is "+ (String)s.getFirst());
+                            if (aSourceFolder.equals((String)s.getFirst())){
+                                System.out.println("generateExportableAssetsNormalizedMbox: Deduplicate for this email document: "+ ed.getUniqueId());
+                                EmailUtils.printToMbox(this, (EmailDocument) ed, pw, getBlobStore(), true);
+                                break;
+                            }
+                        }
+                        */
+                    //}
+
+                    pw.close();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } // endif MBOX export
+            /*
+            else {
+                //TODO: more codings are required here to support non-MBOX normalization formats.
+
             }
-
+             */
         }
 
     }
-*/
+
     public void setExportableAssets(Archive.Exportable_Assets exportableAssets){
         setExportableAssets(exportableAssets, "MBOX", false, true, null);
     }
@@ -2497,7 +2541,12 @@ after maskEmailDomain.
     }
 
     public void setExportableAssets(Archive.Exportable_Assets exportableAssets, String normalizedFormat, boolean includeRestricted, boolean includeDuplicated, ArrayList<String> sourceAssetsFolders){
-        String targetExportableAssetsFolder = exportableAssetsDir.getPath() + File.separatorChar;
+        String targetExportableAssetsFolder;
+        if (exportableAssets == EXPORTABLE_APPRAISAL_CANONICAL_ACQUISITIONED || exportableAssets == EXPORTABLE_APPRAISAL_NORMALIZED_ACQUISITIONED || exportableAssets == EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED)
+            targetExportableAssetsFolder = exportableAssetsDir.getPath() + File.separatorChar;
+        else
+            targetExportableAssetsFolder = Config.REPO_DIR_PROCESSING + File.separatorChar + "user" + File.separatorChar;
+
         String targetExportableAssetsFilename;
 
         switch (exportableAssets) {
@@ -2528,15 +2577,19 @@ after maskEmailDomain.
                 break;
 
             case EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED:
+                //targetExportableAssetsFolder = targetExportableAssetsFolder + "user/data/exportableAssets/" + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
                 targetExportableAssetsFolder = targetExportableAssetsFolder + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
+                new File(targetExportableAssetsFolder).mkdir();
 
                 // generate normalized MBOX email store
-                //generateExportableAssetsNormalizedMbox(targetExportableAssetsFolder);
+                generateExportableAssetsNormalizedMbox(targetExportableAssetsFolder, normalizedFormat, includeRestricted, includeDuplicated);
                 break;
 
             case EXPORTABLE_PROCESSING_NORMALIZED:
-                String sourceExportableAssetFolder = targetExportableAssetsFolder + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
-                targetExportableAssetsFolder = targetExportableAssetsFolder + EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_SUBDIR;
+                String sourceExportableAssetFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
+                targetExportableAssetsFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_SUBDIR;
+                System.out.println("source: "+ sourceExportableAssetFolder);
+                System.out.println("destination: "+ targetExportableAssetsFolder);
                 new File(targetExportableAssetsFolder).mkdir();
                 try {
                     Util.copy_directory(sourceExportableAssetFolder, targetExportableAssetsFolder);
@@ -2545,15 +2598,16 @@ after maskEmailDomain.
                 break;
 
             case EXPORTABLE_PROCESSING_NORMALIZED_PROCESSED:
-                targetExportableAssetsFolder = targetExportableAssetsFolder + EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_PROCESSED_SUBDIR;
+                targetExportableAssetsFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_PROCESSED_SUBDIR;
+                System.out.println("destination: "+ targetExportableAssetsFolder);
                 new File(targetExportableAssetsFolder).mkdir();
 
                 // generate normalized MBOX email store
-                //generateExportableAssetsNormalizedMbox(targetExportableAssetsFolder);
+                generateExportableAssetsNormalizedMbox(targetExportableAssetsFolder, normalizedFormat, includeRestricted, includeDuplicated);
                 break;
         }
 
-        updateFileInBag(targetExportableAssetsFolder, baseDir);
+        //updateFileInBag(targetExportableAssetsFolder, baseDir);
     }
 
     /*public JSONArray getEntitiesCountAsJSON(Short entityType,int maxrecords){

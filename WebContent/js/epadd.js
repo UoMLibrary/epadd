@@ -320,7 +320,7 @@ epadd.submitFolders = function()
 		return urlParams;
 	}
 	function setExportableAssets(){
-		var post_params = getSelectedExportableAssetsFileParams() + '&exportableAssets=AppraisalAcquisitioned';
+		var post_params = getSelectedExportableAssetsFileParams() + '&exportableAssets=exportAcquisitioned';
 		var page = "ajax/async/setExportableAssets.jsp";
 
 		try {
