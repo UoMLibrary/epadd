@@ -2617,14 +2617,16 @@ after maskEmailDomain.
                 break;
 
             case EXPORTABLE_PROCESSING_NORMALIZED:
-                String sourceExportableAssetFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
+
                 targetExportableAssetsFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_SUBDIR;
 
-                final Path normalizedProcessingFile = new File(targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR).toPath();
-                if (Files.isDirectory(normalizedProcessingFile)){
-                    //System.out.println("source: "+ sourceExportableAssetFolder);
-                    //System.out.println("destination: "+ targetExportableAssetsFolder);
 
+                String sourceExportableAssetFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
+                final Path normalizedProcessingFile = new File(sourceExportableAssetFolder).toPath();
+                System.out.println("source: "+ sourceExportableAssetFolder);
+                System.out.println("destination: "+ targetExportableAssetsFolder);
+                if (Files.isDirectory(normalizedProcessingFile)){
+                    System.out.println("source destination exists: "+ targetExportableAssetsFolder);
                     new File(targetExportableAssetsFolder).mkdir();
                     try {
                         Util.copy_directory(sourceExportableAssetFolder, targetExportableAssetsFolder);
@@ -2633,6 +2635,7 @@ after maskEmailDomain.
                         returnMessage = "EXPORTABLE_PROCESSING_NORMALIZED: Unexpected error is found during copying files";
                     }
                 } else {
+                    System.out.println("source destination NOT exists!!! "+ targetExportableAssetsFolder);
                     returnCode = "2";
                     returnMessage = "No Appraisal appraised folder / file";
                 }
@@ -2641,7 +2644,7 @@ after maskEmailDomain.
 
             case EXPORTABLE_PROCESSING_NORMALIZED_PROCESSED:
                 targetExportableAssetsFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_PROCESSED_SUBDIR;
-                System.out.println("destination: "+ targetExportableAssetsFolder);
+                //System.out.println("destination: "+ targetExportableAssetsFolder);
                 new File(targetExportableAssetsFolder).mkdir();
 
                 // generate normalized MBOX email store

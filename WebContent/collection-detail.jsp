@@ -376,10 +376,32 @@
             return false;
         });
 
+        function loadArchive(){
+            var enterparams = 'dir='+encodeURIComponent('<%=id%>');
+            var page = "ajax/async/loadArchive.jsp";
+
+            try {
+                fetch_page_with_progress ('ajax/async/loadArchive.jsp', "status", document.getElementById('status'), document.getElementById('status_text'), enterparams, null);
+            } catch(err) { }
+        }
+
+        // To support exportable asset, result of success ajax/setExportableAssets should be a call to ajax/loadArchive
+
         //result of succesful ajax/loadArchive should be a call to browse-top page with appropriate archiveID. hence
         //set it as a resultPage of the returned json object in ajax/loadArchive.jsp.
+        /*
         var enterparams = 'dir='+encodeURIComponent('<%=id%>');
-        $('.collection-enter').click(function() { fetch_page_with_progress ('ajax/async/loadArchive.jsp', "status", document.getElementById('status'), document.getElementById('status_text'), enterparams, null); /* load_archive_and_call(function() { window.location = "browse-top"} */});
+        $('.collection-enter').click(function() { fetch_page_with_progress ('ajax/async/loadArchive.jsp', "status", document.getElementById('status'), document.getElementById('status_text'), enterparams, null); });
+        */
+        $('.collection-enter').click(function() {
+            var post_params = '&exportableAssets=exportProcessing';
+            var page = "ajax/async/setExportableAssets.jsp";
+
+            try {
+                fetch_page_with_progress(page, "status", document.getElementById('status'), document.getElementById('status_text'), post_params, loadArchive);
+                //fetch_page_with_progress(page, "status", document.getElementById('status'), document.getElementById('status_text'), post_params);   //debug only
+            } catch(err) { }
+        });
 
         var uploadBannerImageHandler=function() {
             //collect archiveID,and addressbookfile field. If  empty return false;
