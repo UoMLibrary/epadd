@@ -75,6 +75,7 @@ public void setExportableAssets(Multimap<String,String> params, Consumer<StatusP
     }
 
 	 String error="";
+    JSONObject exportResult = new JSONObject();
 
     ArrayList<String> assetFiles = new ArrayList<String>();
 
@@ -84,24 +85,32 @@ public void setExportableAssets(Multimap<String,String> params, Consumer<StatusP
 
      if ( "exportAcquisitioned".equals(exportableAssets)){
         System.out.println("exportableAssets = exportAcquisitioned");
-        resultJSON = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_CANONICAL_ACQUISITIONED, assetFiles);
-        resultJSON = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_ACQUISITIONED, assetFiles);
+        exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_CANONICAL_ACQUISITIONED, assetFiles);
+        exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_ACQUISITIONED, assetFiles);
      } else if ("exportAppraised".equals(exportableAssets)){
         System.out.println("exportableAssets = exportAppraised");
-        //archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED);
-        //public void setExportableAssets(Archive.Exportable_Assets exportableAssets, String normalizedFormat, boolean includeRestricted, boolean includeDuplicated, ArrayList<String> sourceAssetsFolders){
-        resultJSON = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED, "MBOX", false, true, null);
+
+        //public JSONObject setExportableAssets(Archive.Exportable_Assets exportableAssets, String normalizedFormat, boolean includeRestricted, boolean includeDuplicated, ArrayList<String> sourceAssetsFolders){
+        //exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED);
+        exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED, "MBOX", false, true, null);
      } else if ("exportProcessing".equals(exportableAssets)){
          System.out.println("exportableAssets = exportProcessing");
-         resultJSON = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_PROCESSING_NORMALIZED);
+        exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_PROCESSING_NORMALIZED);
      } else if ("exportAccessionProcessing".equals(exportableAssets)){
         System.out.println("exportableAssets = exportAccessionProcessing");
-        resultJSON = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_PROCESSING_NORMALIZED, assetFiles);
+        exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_PROCESSING_NORMALIZED, assetFiles);
      } else if ("exportProcessed".equals(exportableAssets)){
         System.out.println("exportableAssets = exportProcessed");
-        resultJSON = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_PROCESSING_NORMALIZED_PROCESSED);
+        exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_PROCESSING_NORMALIZED_PROCESSED);
      }
 
+        if (!Util.nullOrEmpty(error)){
+            resultJSON.put("status", 1);
+            resultJSON.put("error", error);
+        } else {
+            resultJSON.put("status", 0);
+            resultJSON.put("responseText","Exportable assets are ready!");
+        }
 }
 %>
 

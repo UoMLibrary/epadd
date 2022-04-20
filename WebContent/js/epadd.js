@@ -319,6 +319,7 @@ epadd.submitFolders = function()
 
 		return urlParams;
 	}
+
 	function setExportableAssets(){
 		var post_params = getSelectedExportableAssetsFileParams() + '&exportableAssets=exportAcquisitioned';
 		var page = "ajax/async/setExportableAssets.jsp";
@@ -356,6 +357,11 @@ epadd.submitFolders = function()
 		var post_params = getSelectedFolderParams() + '&period=Monthly&downloadAttachments=true';
 		// need to check muse.mode here for page to redirect to actually!
 		var page = "ajax/async/doFetchAndIndex.jsp";
+		// To support exportable asset, result of success ajax/doFetchAndIndex should be a call to ajax/setExportableAssets which,
+		// in turn, should be a call to browse-top page.
+		// Ideally, exportable assets should have saved up BEFORE any ePADD operation including email fetching.
+		// However, we are unable to determine exportable assets folder under the archive basedir
+		// It should be not harmful to adopt this approach as ePADD does not touch raw injected archive files (like MBOX files) during import
 		fetch_page_with_progress(page, "status", document.getElementById('status'), document.getElementById('status_text'), post_params, setExportableAssets);
 	} catch(err) { }
 };

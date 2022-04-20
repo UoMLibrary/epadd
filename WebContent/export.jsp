@@ -182,7 +182,7 @@ Error: Export is only available in processing or appraisal modes!
                             <option value="" selected disabled><%=edu.stanford.muse.util.Messages.getMessage(archiveID, "messages", "export.select")%></option>
                             <% if (ModeConfig.isAppraisalMode()) { %>
                                 <option value = "exportAppraised">exportAppraised</option>
-                            <% } else if (ModeConfig.isProcessingMode()) {
+                            <% } else if (ModeConfig.isProcessingMode()) { %>
                                 <option value = "exportProcessed">exportProcessed</option>
                             <% } %>
                         </select>
