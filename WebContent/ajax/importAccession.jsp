@@ -64,7 +64,6 @@ if (!collectionDir.equals(baseDir))
 
 	    if(new File(collectionDir).listFiles().length==0)//means collection directory is empty
 	        {
-                System.out.println("reach branch 1");
     	    // delete the existing directory -- Q: should we give user a warning??
 	        JSPHelper.log.info ("Copying archive files from " + baseDir + " to " + collectionDir);
 		    FileUtils.deleteDirectory(new File(collectionDir));
@@ -88,7 +87,6 @@ if (!collectionDir.equals(baseDir))
 	        result.put("archiveID",ArchiveReaderWriter.getArchiveIDForArchive(collection));
 	      }
 	        else{
-                System.out.println("reach branch 2");
             //read archives present in basedir and collection dir.
             collection = ArchiveReaderWriter.readArchiveIfPresent(collectionDir);
             Archive accession = ArchiveReaderWriter.readArchiveIfPresent(baseDir);

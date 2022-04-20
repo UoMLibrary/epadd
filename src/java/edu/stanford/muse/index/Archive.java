@@ -2618,28 +2618,58 @@ after maskEmailDomain.
 
             case EXPORTABLE_PROCESSING_NORMALIZED:
 
-                targetExportableAssetsFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_SUBDIR;
+                String sourceExportableAssetFolder;
 
+                // There are 2 scenarios to be handled. First one is for imported archive collection with default accession.
+                // Second one is for accessioned collection with explicitly inputted folder path of sourceAssetFolder.
+                if (sourceAssetsFolders == null) {
+                    // This case is for imported archive collection with default accession
+                    System.out.println("imported archive collection with default accession");
+                    sourceExportableAssetFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
+                    targetExportableAssetsFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_SUBDIR;
+                    final Path sourceFilePath = new File(sourceExportableAssetFolder).toPath();
+                    final Path targetFilePath = new File(targetExportableAssetsFolder).toPath();
 
-                String sourceExportableAssetFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
-                final Path normalizedProcessingFile = new File(sourceExportableAssetFolder).toPath();
-                System.out.println("source: "+ sourceExportableAssetFolder);
-                System.out.println("destination: "+ targetExportableAssetsFolder);
-                if (Files.isDirectory(normalizedProcessingFile)){
-                    System.out.println("source destination exists: "+ targetExportableAssetsFolder);
-                    new File(targetExportableAssetsFolder).mkdir();
-                    try {
-                        Util.copy_directory(sourceExportableAssetFolder, targetExportableAssetsFolder);
-                    } catch (IOException ioe){
-                        returnCode = "4";
-                        returnMessage = "EXPORTABLE_PROCESSING_NORMALIZED: Unexpected error is found during copying files";
+                    System.out.println("source: " + sourceExportableAssetFolder);
+                    System.out.println("destination: " + targetExportableAssetsFolder);
+
+                    if (!Files.isDirectory(targetFilePath)) {
+                        if (Files.isDirectory(sourceFilePath)) {
+                            System.out.println("source destination exists: " + targetExportableAssetsFolder);
+                            new File(targetExportableAssetsFolder).mkdir();
+                            try {
+                                Util.copy_directory(sourceExportableAssetFolder, targetExportableAssetsFolder);
+                            } catch (IOException ioe) {
+                                returnCode = "4";
+                                returnMessage = "EXPORTABLE_PROCESSING_NORMALIZED: Unexpected error is found during copying files";
+                            }
+                        } else {
+                            System.out.println("source destination NOT exists!!! " + sourceExportableAssetFolder);
+                            returnCode = "2";
+                            returnMessage = "No Appraisal appraised folder / file";
+                        }
+                    } else {
+                        System.out.println("Just run once on target destination exists. Skip now " + targetExportableAssetsFolder);
                     }
-                } else {
-                    System.out.println("source destination NOT exists!!! "+ targetExportableAssetsFolder);
-                    returnCode = "2";
-                    returnMessage = "No Appraisal appraised folder / file";
-                }
 
+                } else {
+                    // This case is for accessioned collection
+                    System.out.println("import from accession");
+                    targetExportableAssetsFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_SUBDIR;
+                    new File(targetExportableAssetsFolder).mkdir();
+
+                    for (String sourceAssetFolder : sourceAssetsFolders) {
+                        sourceExportableAssetFolder = sourceAssetFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
+                        System.out.println("source: " + sourceExportableAssetFolder);
+                        System.out.println("destination: " + targetExportableAssetsFolder);
+                        try {
+                            Util.copy_directory(sourceExportableAssetFolder, targetExportableAssetsFolder);
+                        } catch (IOException ioe) {
+                            returnCode = "4";
+                            returnMessage = "EXPORTABLE_PROCESSING_NORMALIZED: Unexpected error is found during copying files";
+                        }
+                    }
+                }
                 break;
 
             case EXPORTABLE_PROCESSING_NORMALIZED_PROCESSED:
