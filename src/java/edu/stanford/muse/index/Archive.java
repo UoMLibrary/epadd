@@ -2488,41 +2488,23 @@ after maskEmailDomain.
 
                     for (Document d : searchResult.first) {
                         EmailDocument ed = (EmailDocument) d;
+                        // if includeRestricted is set to false, need filter out those labelled with DNT labels
                         if (includeRestricted || !getLabelIDs(ed).contains(LabelManager.LABELID_DNT))
                             EmailUtils.printToMbox(this, (EmailDocument) ed, pw, getBlobStore(), true);
 
                     }
+                    // if includeDuplicated is set to true, need perform deduplication
+                    if (includeDuplicated){
+                        for (Map.Entry<Document, Tuple2<String, String>>  entry: dupMessageInfo.entries()) {
+                            Document deduplicate = entry.getKey();
+                            Tuple2<String, String> s = entry.getValue();
 
-                    //if (includeDuplicated){
-                        /*
-                        Consumer<Map.Entry<Document,Tuple2<String, String>>> consumer = entry -> {
-                            EmailDocument ed = (EmailDocument) entry.getKey();
-
-                            String dupSourceFolder = (String) ((Tuple2)entry.getValue()).getFirst();
-                            System.out.println("DupSource Folder is "+ dupSourceFolder);
-
-                            if (aSourceFolder.equals(dupSourceFolder)){
-                                System.out.println("generateExportableAssetsNormalizedMbox: Deduplicate for this email document: "+ ed.getUniqueId());
-                                EmailUtils.printToMbox(this, (EmailDocument) ed, pw, getBlobStore(), true);
-                            }
-                        };
-                        getDupMessageInfo().asMap().forEach(consumer);
-                        */
-                        /*
-                        int numofduplicates =  getDupMessageInfo().get(ed).size();//number of duplicates found for this emaildocument
-                        //get the size of attachments
-                        System.out.println("" + numofduplicates + " duplicated message is found on this message");
-
-                        for (Tuple2 s :  getDupMessageInfo().get(ed)) {
-                            System.out.println("this mbox is "+ (String)s.getFirst());
-                            if (aSourceFolder.equals((String)s.getFirst())){
-                                System.out.println("generateExportableAssetsNormalizedMbox: Deduplicate for this email document: "+ ed.getUniqueId());
-                                EmailUtils.printToMbox(this, (EmailDocument) ed, pw, getBlobStore(), true);
-                                break;
+                            if (aSourceFolder.equals(s.getFirst())){
+                                System.out.println("generateExportableAssetsNormalizedMbox: Deduplicate for this email document: "+ deduplicate.getUniqueId());
+                                EmailUtils.printToMbox(this, (EmailDocument) deduplicate, pw, getBlobStore(), true);
                             }
                         }
-                        */
-                    //}
+                    }
 
                     pw.close();
 
@@ -2682,6 +2664,7 @@ after maskEmailDomain.
                 break;
         }
 
+        // Finally, update BagIt checksum
         //updateFileInBag(targetExportableAssetsFolder, baseDir);
 
         result.put ("status", returnCode);

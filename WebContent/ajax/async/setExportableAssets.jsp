@@ -89,10 +89,7 @@ public void setExportableAssets(Multimap<String,String> params, Consumer<StatusP
         exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_ACQUISITIONED, assetFiles);
      } else if ("exportAppraised".equals(exportableAssets)){
         System.out.println("exportableAssets = exportAppraised");
-
-        //public JSONObject setExportableAssets(Archive.Exportable_Assets exportableAssets, String normalizedFormat, boolean includeRestricted, boolean includeDuplicated, ArrayList<String> sourceAssetsFolders){
-        //exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED);
-        exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED, "MBOX", false, true, null);
+        exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED);
      } else if ("exportProcessing".equals(exportableAssets)){
          System.out.println("exportableAssets = exportProcessing");
         exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_PROCESSING_NORMALIZED);
