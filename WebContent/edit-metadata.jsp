@@ -81,7 +81,7 @@
 <%
 	if (ModeConfig.isAppraisalMode()) {
 %>
-<div style="text-align: left; margin:auto; width: 1100px; position: relative;"> Appraisal  &nbsp;&nbsp;&nbsp;&nbsp;| &nbsp;&nbsp;&nbsp;&nbsp; Edit Metadata</div>
+<div style="text-align: left; margin:auto; width: 1100px; position: relative;"> Appraisal  &nbsp;&nbsp;&nbsp;&nbsp;| &nbsp;&nbsp;&nbsp;&nbsp; <a href="browse-top?archiveID=<%=archiveID%>">Browse this Collection</a> &nbsp;&nbsp;&nbsp;&nbsp;| &nbsp;&nbsp;&nbsp;&nbsp; Edit Metadata</div>
 <%
 	} else {
 %>

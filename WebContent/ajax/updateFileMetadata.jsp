@@ -9,17 +9,26 @@
 <%@ page import="java.io.*"%><%@ page import="edu.stanford.muse.webapp.ModeConfig"%><%@ page import="edu.stanford.muse.Config"%><%@ page import="java.lang.ref.WeakReference"%><%@ page import="edu.stanford.muse.index.ArchiveReaderWriter"%><%@ page import="gov.loc.repository.bagit.domain.Bag"%><%@ page import="java.util.ArrayList"%><%@ page import="java.util.List"%>
 <%
 	JSONObject result = new JSONObject();
+
+    // This restriction is not available now. User is allowed to prepare metadatas in Appriasal module
+    /*
 	if (!ModeConfig.isProcessingMode()) {
 		result.put ("status", 1);
 		result.put ("errorMessage", "Updating file metadata is allowed only in ePADD's Processing mode.");
 		out.println (result.toString(4));
 		return;
 	}
+    */
 
 	String errorMessage="";
 	int errorCode=0;
     Archive.FileMetadata fmetadata = null;
-	String archiveBaseDir = Config.REPO_DIR_PROCESSING + File.separator + request.getParameter ("collection");
+	String archiveBaseDir;
+    if (ModeConfig.isAppraisalMode()) {
+        archiveBaseDir= Config.REPO_DIR_APPRAISAL + File.separator + "user";
+    } else {
+        archiveBaseDir= Config.REPO_DIR_PROCESSING + File.separator + request.getParameter ("collection");
+    }
     String fileID = request.getParameter("fileID");
     String[] fileIDParts;
     int fileOffset = -1;

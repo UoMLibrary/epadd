@@ -450,6 +450,9 @@ public class JSPHelper {
             }
         }
         // add the new stores
+
+		// we add the following code to support file metada requirement in epadd+ project
+		archive.collectionMetadata.setFileMetadatas(archive, allFolders);
     }
 
 	/*

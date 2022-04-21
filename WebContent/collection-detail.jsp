@@ -91,50 +91,6 @@
         return;
     }
 
-    // we add the following code to support file metada requirement in epadd+ project
-    // It handles there is case for no accession defined in collection. i.e. If user import collection data by coping and pasting from appraisal folder, processing module treat the archive as in "default" accession.
-    // Here we will not create an accession object for "default" accession.
-    // In this case, file metadata will belong directly under collection instead of accession. (We may just leave it in and may change it in future)
-    if (    ModeConfig.isProcessingMode() &&                      // i.e. creating file metadata only during Processing module
-            Util.nullOrEmpty(cm.accessionMetadatas) &&         // i.e. no existing accession metadata defined yet.
-            cm.fileMetadatas == null                            // i.e. make sure file metadata created once and there is not any existing file metadata created yet.
-    ){
-        Archive collection = ArchiveReaderWriter.readArchiveIfPresent(archiveDir);
-
-        List<Archive.FileMetadata> fms = new ArrayList<Archive.FileMetadata>();
-        Archive.FileMetadata fm = new Archive.FileMetadata();
-
-        List<FetchStats> fetchStats = collection.allStats;
-        int count = 0;
-
-        if(fetchStats!=null) {
-            for (FetchStats fs : fetchStats) {
-                fm = new Archive.FileMetadata();
-                fm.fileID = "Collection/File/" + StringUtils.leftPad(""+count, 4, "0");
-                fm.fileFormat = "MBOX";
-                fm.notes="";
-
-                if (fs.selectedFolders != null) {
-                    for (Pair<String, FolderInfo> p : fs.selectedFolders){
-                        fm.filename = Util.escapeHTML(p.getFirst());
-                        break;
-                    }
-                }
-
-                count ++;
-                fms.add(fm);
-            } // end for
-        }   //end if (fetchStats!=null)
-
-        cm.fileMetadatas = fms;
-        collection.collectionMetadata = cm;//IMP otherwise in-memory archive processingmetadata and
-        //asumme it be an incremental update
-        ArchiveReaderWriter.saveCollectionMetadata(collection,Archive.Save_Archive_Mode.INCREMENTAL_UPDATE);
-        //the updated metadata on disc will be out of sync. It manifests when saving this archive which
-        //overwrites the latest on-disc PM data with stale in-memory data.
-        JSPHelper.log.info ("File metadata imported");
-    }
-
     String fileParam = f.getName() + "/" + Archive.BAG_DATA_FOLDER+ "/" + Archive.IMAGES_SUBDIR + "/" + "bannerImage"; // always forward slashes please
     String url = "serveImage.jsp?file=" + fileParam;
 %>

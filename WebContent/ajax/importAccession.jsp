@@ -60,7 +60,6 @@ if (!collectionDir.equals(baseDir))
 	    //the report when a call to displaymergeReport.jsp is made with archiveID.
 	    String accessionID=request.getParameter("accessionID");
 	    Archive collection;
-        List<FetchStats> accessionAllStats = new ArrayList<FetchStats>();
 
 	    if(new File(collectionDir).listFiles().length==0)//means collection directory is empty
 	        {
@@ -78,7 +77,7 @@ if (!collectionDir.equals(baseDir))
             //This information is present in blobstore so just get it from there.
             collection.collectionMetadata.normalizedFiles=collection.getBlobStore().getNormalizedFilesCount();
             collection.collectionMetadata.renamedFiles=collection.getBlobStore().getCleanedFilesCount();
-            accessionAllStats = collection.allStats;     // for file metadata creation later
+            collection.collectionMetadata.fileMetadatas = null; // Erase all existing file metadatas as we will add back them into accession later
 
             //IMP to write collection metadata back..
             ArchiveReaderWriter.saveCollectionMetadata(collection.collectionMetadata,collection.baseDir);
@@ -93,7 +92,6 @@ if (!collectionDir.equals(baseDir))
             collection = ArchiveReaderWriter.readArchiveIfPresent(collectionDir);
             Archive accession = ArchiveReaderWriter.readArchiveIfPresent(baseDir);
 
-            accessionAllStats = accession.allStats;     // Cache accession's allStatus before it is merged for file metadata creation later
             //call merge on these archives..
             Util.ASSERT(request.getParameter("accessionID")!=null);
             //Merge result will be stored in a field of collection archive object. It will be used
@@ -144,31 +142,28 @@ if (!collectionDir.equals(baseDir))
                 if (cm == null)
                     cm = new Archive.CollectionMetadata();
 
+                Archive accession = ArchiveReaderWriter.readArchiveIfPresent(baseDir);
+                Archive.CollectionMetadata accession_cm = ArchiveReaderWriter.readCollectionMetadata (baseDir);
+                List<Archive.FileMetadata> accession_fms = accession_cm.fileMetadatas;
+
                 List<Archive.FileMetadata> fms = new ArrayList<Archive.FileMetadata>();
 
                 {
                    // we add the following code to support file metada requirement in epadd+ project
+                   // All file metadatas in accession_fms would be copied into FileMetadatas fms, which is then stored in collection.
+
                     Archive.FileMetadata fm = new Archive.FileMetadata();;
 
                     int count = 0;
-                    if(accessionAllStats!=null) {
-                        for (FetchStats fs : accessionAllStats) {
+                    if (accession_fms!=null) {
+                        for (Archive.FileMetadata accessionFM : accession_fms) {
                             fm = new Archive.FileMetadata();
-                            fm.fileID = "" + am.id + "/File/" + StringUtils.leftPad(""+count, 4, "0");
-                            fm.fileFormat = "MBOX";
-                            fm.notes="";
-
-                            if (fs.selectedFolders != null) {
-                                for (Pair<String, FolderInfo> p : fs.selectedFolders){
-                                    fm.filename = Util.escapeHTML(p.getFirst());
-                                    break;
-                                }
-                            }
-
+                            fm.clone(accessionFM);   // clone all existing metadata field from accession
+                            fm.fileID = "" + am.id + "/File/" + StringUtils.leftPad(""+count, 4, "0");  // overwrite on ID field
                             count ++;
                             fms.add(fm);
                         } // end for
-                    }   //end if (fetchStats!=null)
+                    }   //end if (accession_fms!=null)
                 }
                 am.fileMetadatas = fms;
 

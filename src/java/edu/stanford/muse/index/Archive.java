@@ -61,6 +61,7 @@ import gov.loc.repository.bagit.writer.MetadataWriter;
 import groovy.lang.Tuple2;
 import lombok.Getter;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 //import org.apache.commons.logging.Log;
@@ -476,6 +477,29 @@ int errortype=0;
         public String environmentCharacteristic, environmentPurpose, environmentNote;
         public String softwareName, softwareVersion;
 
+        public void clone (FileMetadata target) {
+            fileID = target.fileID;
+            filename = target.filename;
+            fileFormat = target.fileFormat;
+            notes = target.notes;
+            preservationLevelRole = target.preservationLevelRole;
+            preservationLevelRationale = target.preservationLevelRationale;
+            preservationLevelDateAssigned = target.preservationLevelDateAssigned;
+            compositionLevel = target.compositionLevel;
+            messageDigestAlgorithm = target.messageDigestAlgorithm;
+            messageDigest = target.messageDigest;
+            messageDigestOrginator = target.messageDigestOrginator;
+            formatName = target.formatName;
+            formatVersion = target.formatVersion;
+            creatingApplicationName = target.creatingApplicationName;
+            creatingApplicationVersion = target.creatingApplicationVersion;
+            dateCreatedByApplication = target.dateCreatedByApplication;
+            environmentCharacteristic = target.environmentCharacteristic;
+            environmentPurpose = target.environmentPurpose;
+            environmentNote = target.environmentNote;
+            softwareName = target.softwareName;
+            softwareVersion = target.softwareVersion;
+        }
     }
 
     // these fields are used in the library setting
@@ -549,6 +573,49 @@ int errortype=0;
 
         public void setIngestionLocaleTag(String toLanguageTag) {
             ingestionLocaleTag = toLanguageTag;
+        }
+
+        public void setFileMetadatas(Archive collection, String[] importedFiles) {
+
+            final String STORE_FOLDER_SEPARATOR = "^-^";
+
+            CollectionMetadata cm = collection.collectionMetadata;
+            List<Archive.FileMetadata> fms;
+            int count = 0;
+
+            if (cm.fileMetadatas != null) {
+                count = cm.fileMetadatas.size();
+                fms = cm.fileMetadatas;
+            } else {
+                fms = new ArrayList<Archive.FileMetadata>();
+            }
+
+            Archive.FileMetadata fm = new Archive.FileMetadata();
+
+            if(importedFiles!=null) {
+                for (String fs : importedFiles) {
+
+                    int idx = fs.indexOf(STORE_FOLDER_SEPARATOR);
+                    if (idx == -1) {
+                        // Bad folder name received. Content not parsed
+                        continue;
+                    }
+                    //String accountName = fs.substring (0, idx); // example: GMail
+                    String folderName = fs.substring (idx + STORE_FOLDER_SEPARATOR.length()); // example: MyFolder
+
+                    fm = new Archive.FileMetadata();
+                    fm.fileID = "Collection/File/" + StringUtils.leftPad(""+count, 4, "0");
+                    fm.filename = folderName;
+                    fm.fileFormat = "MBOX";
+                    fm.notes="";
+
+                    count ++;
+                    fms.add(fm);
+                } // end for
+            }   //end if (importedFiles!=null)
+
+            cm.fileMetadatas = fms;
+            collection.collectionMetadata = cm;
         }
     }
 
