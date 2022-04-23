@@ -2530,11 +2530,11 @@ after maskEmailDomain.
         return setExportableAssets(exportableAssets, "MBOX", false, true, null);
     }
 
-    public JSONObject setExportableAssets(Archive.Exportable_Assets exportableAssets, ArrayList<String> sourceAssetsFolders){
-        return setExportableAssets(exportableAssets, "MBOX", false, true, sourceAssetsFolders);
+    public JSONObject setExportableAssets(Archive.Exportable_Assets exportableAssets, ArrayList<String> sourceAssetsLocations){
+        return setExportableAssets(exportableAssets, "MBOX", false, true, sourceAssetsLocations);
     }
 
-    public JSONObject setExportableAssets(Archive.Exportable_Assets exportableAssets, String normalizedFormat, boolean includeRestricted, boolean includeDuplicated, ArrayList<String> sourceAssetsFolders){
+    public JSONObject setExportableAssets(Archive.Exportable_Assets exportableAssets, String normalizedFormat, boolean includeRestricted, boolean includeDuplicated, ArrayList<String> sourceAssetsLocations){
         JSONObject result = new JSONObject();
         String returnCode = "0";
         String returnMessage = "";
@@ -2553,13 +2553,14 @@ after maskEmailDomain.
                 new File(targetExportableAssetsFolder).mkdir();
 
                 try {
-                    for (String sourceAssetFolder : sourceAssetsFolders) {
-                        targetExportableAssetsFilename = Util.filePathTail(sourceAssetFolder);
-                        Util.copy_file(sourceAssetFolder, targetExportableAssetsFolder + File.separatorChar + targetExportableAssetsFilename);
+                    for (String sourceAssetsFile : sourceAssetsLocations) {
+                        // We use the same filenames for canonical acquisitioned assets
+                        targetExportableAssetsFilename = Util.filePathTail(sourceAssetsFile);
+                        Util.copy_file(sourceAssetsFile, targetExportableAssetsFolder + File.separatorChar + targetExportableAssetsFilename);
                     }
                 } catch (IOException ioe) {
                     returnCode = "4";
-                    returnMessage = "EXPORTABLE_APPRAISAL_CANONICAL_ACQUISITIONED: Unexpected error is found during copying files";
+                    returnMessage = "Real time error happened during normalization process: unexpected error is found during copying files";
                 }
 
                 break;
@@ -2569,13 +2570,13 @@ after maskEmailDomain.
                 new File(targetExportableAssetsFolder).mkdir();
 
                 try {
-                    for (String sourceAssetFolder : sourceAssetsFolders) {
+                    for (String sourceAssetFolder : sourceAssetsLocations) {
                         targetExportableAssetsFilename = Util.filePathTail(sourceAssetFolder);
                         Util.copy_file(sourceAssetFolder, targetExportableAssetsFolder + File.separatorChar + targetExportableAssetsFilename);
                     }
                 } catch (IOException ioe) {
                     returnCode = "4";
-                    returnMessage = "EXPORTABLE_APPRAISAL_NORMALIZED_ACQUISITIONED: Unexpected error is found during copying files";
+                    returnMessage = "Real time error happened during normalization process: unexpected error is found during copying files";
                 }
 
                 break;
@@ -2594,7 +2595,7 @@ after maskEmailDomain.
                     generateExportableAssetsNormalizedMbox(targetExportableAssetsFolder, normalizedFormat, includeRestricted, includeDuplicated);
                 } else {
                     returnCode = "1";
-                    returnMessage = "No Appraisal normalized asset folder / files";
+                    returnMessage = "Missing Appraisal Normalized assets folder / files";
                 }
                 break;
 
@@ -2604,7 +2605,7 @@ after maskEmailDomain.
 
                 // There are 2 scenarios to be handled. First one is for imported archive collection with default accession.
                 // Second one is for accessioned collection with explicitly inputted folder path of sourceAssetFolder.
-                if (sourceAssetsFolders == null) {
+                if (sourceAssetsLocations == null) {
                     // This case is for imported archive collection with default accession
                     System.out.println("imported archive collection with default accession");
                     sourceExportableAssetFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
@@ -2628,7 +2629,7 @@ after maskEmailDomain.
                         } else {
                             System.out.println("source destination NOT exists!!! " + sourceExportableAssetFolder);
                             returnCode = "2";
-                            returnMessage = "No Appraisal appraised folder / file";
+                            returnMessage = "Missing Appraisal Normalized Appraised assets folder / file";
                         }
                     } else {
                         System.out.println("Just run once on target destination exists. Skip now " + targetExportableAssetsFolder);
@@ -2640,27 +2641,44 @@ after maskEmailDomain.
                     targetExportableAssetsFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_SUBDIR;
                     new File(targetExportableAssetsFolder).mkdir();
 
-                    for (String sourceAssetFolder : sourceAssetsFolders) {
+                    for (String sourceAssetFolder : sourceAssetsLocations) {
                         sourceExportableAssetFolder = sourceAssetFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_APPRAISAL_NORMALIZED_APPRAISED_SUBDIR;
                         System.out.println("source: " + sourceExportableAssetFolder);
                         System.out.println("destination: " + targetExportableAssetsFolder);
-                        try {
-                            Util.copy_directory(sourceExportableAssetFolder, targetExportableAssetsFolder);
-                        } catch (IOException ioe) {
-                            returnCode = "4";
-                            returnMessage = "EXPORTABLE_PROCESSING_NORMALIZED: Unexpected error is found during copying files";
+                        final Path sourceFilePath = new File(sourceExportableAssetFolder).toPath();
+
+                        if (Files.isDirectory(sourceFilePath)) {
+                            try {
+                                Util.copy_directory(sourceExportableAssetFolder, targetExportableAssetsFolder);
+                            } catch (IOException ioe) {
+                                returnCode = "4";
+                                returnMessage = "Real time error happened during normalization process: unexpected error is found during copying files";
+                            }
+                        } else {
+                            System.out.println("source destination NOT exists!!! " + sourceExportableAssetFolder);
+                            returnCode = "2";
+                            returnMessage = "Missing Appraisal Normalized Appraised assets folder / files";
                         }
                     }
                 }
                 break;
 
             case EXPORTABLE_PROCESSING_NORMALIZED_PROCESSED:
+                String normalizedProcessingAssetFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_SUBDIR;
                 targetExportableAssetsFolder = targetExportableAssetsFolder + BAG_DATA_FOLDER + File.separatorChar + EXPORTABLE_ASSETS_SUBDIR + File.separatorChar + EXPORTABLE_ASSETS_PROCESSING_NORMALIZED_PROCESSED_SUBDIR;
-                //System.out.println("destination: "+ targetExportableAssetsFolder);
+
+                final Path normalizedProcessingFilePath = new File(normalizedProcessingAssetFolder).toPath();
+
                 new File(targetExportableAssetsFolder).mkdir();
 
-                // generate normalized MBOX email store
-                generateExportableAssetsNormalizedMbox(targetExportableAssetsFolder, normalizedFormat, includeRestricted, includeDuplicated);
+                if (Files.isDirectory(normalizedProcessingFilePath)) {
+                    // generate normalized MBOX email store
+                    generateExportableAssetsNormalizedMbox(targetExportableAssetsFolder, normalizedFormat, includeRestricted, includeDuplicated);
+                } else {
+                    System.out.println("Processing Normalized assets folder NOT exists!!! " + normalizedProcessingAssetFolder);
+                    returnCode = "3";
+                    returnMessage = "Missing Processing Normalized assets folder / files";
+                }
                 break;
         }
 

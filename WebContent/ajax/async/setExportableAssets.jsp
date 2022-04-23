@@ -77,16 +77,17 @@ public void setExportableAssets(Multimap<String,String> params, Consumer<StatusP
 	 String error="";
     JSONObject exportResult = new JSONObject();
 
-    ArrayList<String> assetFiles = new ArrayList<String>();
+    ArrayList<String> assetsLocation = new ArrayList<String>();
 
     if (!Util.nullOrEmpty(exportableAssetsFiles)){
-        assetFiles = new ArrayList(Arrays.asList(exportableAssetsFiles.split("\\^-\\^")));
+        assetsLocation = new ArrayList(Arrays.asList(exportableAssetsFiles.split("\\^-\\^")));
     }
 
      if ( "exportAcquisitioned".equals(exportableAssets)){
         System.out.println("exportableAssets = exportAcquisitioned");
-        exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_CANONICAL_ACQUISITIONED, assetFiles);
-        exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_ACQUISITIONED, assetFiles);
+        // Notes: assetsLocation here should be a list of full path filenames
+        exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_CANONICAL_ACQUISITIONED, assetsLocation);
+        exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_ACQUISITIONED, assetsLocation);
      } else if ("exportAppraised".equals(exportableAssets)){
         System.out.println("exportableAssets = exportAppraised");
         exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_APPRAISAL_NORMALIZED_APPRAISED);
@@ -95,7 +96,8 @@ public void setExportableAssets(Multimap<String,String> params, Consumer<StatusP
         exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_PROCESSING_NORMALIZED);
      } else if ("exportAccessionProcessing".equals(exportableAssets)){
         System.out.println("exportableAssets = exportAccessionProcessing");
-        exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_PROCESSING_NORMALIZED, assetFiles);
+        // Notes: assetsLocation here should be a list of folder paths
+        exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_PROCESSING_NORMALIZED, assetsLocation);
      } else if ("exportProcessed".equals(exportableAssets)){
         System.out.println("exportableAssets = exportProcessed");
         exportResult = archive.setExportableAssets(Archive.Exportable_Assets.EXPORTABLE_PROCESSING_NORMALIZED_PROCESSED);
